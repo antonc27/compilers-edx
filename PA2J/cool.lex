@@ -77,8 +77,9 @@ LOW_ALPHA=[a-z]
 UP_ALPHA=[A-Z]
 ALPHA=[A-Za-z]
 DIGIT=[0-9]
-NONNEWLINE_WHITE_SPACE_CHAR=[\ \f\t\v]
-WHITE_SPACE_CHAR=[\n\ \f\t\v]
+NONNEWLINE_WHITE_SPACE_CHAR=[\ \f\r\t\011]
+WHITE_SPACE_CHAR=[\n\ \f\r\t\011]
+STRING_TEXT=[^\n\"]*
 
 %%
 
@@ -97,6 +98,8 @@ WHITE_SPACE_CHAR=[\n\ \f\t\v]
   return new Symbol(TokenConstants.ERROR, "Unmatched *)");
 }
 
+<YYINITIAL>"--".* { }
+
 <COMMENT>"(*" {
   comment_count++;
 }
@@ -110,26 +113,26 @@ WHITE_SPACE_CHAR=[\n\ \f\t\v]
 
 <COMMENT>. { }
 
-<YYINITIAL> class { return new Symbol(TokenConstants.CLASS); }
-<YYINITIAL> else { return new Symbol(TokenConstants.ELSE); }
-<YYINITIAL> fi { return new Symbol(TokenConstants.FI); }
-<YYINITIAL> if { return new Symbol(TokenConstants.IF); }
-<YYINITIAL> in { return new Symbol(TokenConstants.IN); }
-<YYINITIAL> inherits { return new Symbol(TokenConstants.INHERITS); }
-<YYINITIAL> isvoid { return new Symbol(TokenConstants.ISVOID); }
-<YYINITIAL> let { return new Symbol(TokenConstants.LET); }
-<YYINITIAL> loop { return new Symbol(TokenConstants.LOOP); }
-<YYINITIAL> pool { return new Symbol(TokenConstants.POOL); }
-<YYINITIAL> then { return new Symbol(TokenConstants.THEN); }
-<YYINITIAL> while { return new Symbol(TokenConstants.WHILE); }
-<YYINITIAL> case { return new Symbol(TokenConstants.CASE); }
-<YYINITIAL> esac { return new Symbol(TokenConstants.ESAC); }
-<YYINITIAL> new { return new Symbol(TokenConstants.NEW); }
-<YYINITIAL> of { return new Symbol(TokenConstants.OF); }
-<YYINITIAL> not { return new Symbol(TokenConstants.NOT); }
+<YYINITIAL> [cC][lL][aA][sS][sS] { return new Symbol(TokenConstants.CLASS); }
+<YYINITIAL> [eE][lL][sS][eE] { return new Symbol(TokenConstants.ELSE); }
+<YYINITIAL> [fF][iI] { return new Symbol(TokenConstants.FI); }
+<YYINITIAL> [iI][fF] { return new Symbol(TokenConstants.IF); }
+<YYINITIAL> [iI][nN] { return new Symbol(TokenConstants.IN); }
+<YYINITIAL> [iI][nN][hH][eE][rR][iI][tT][sS] { return new Symbol(TokenConstants.INHERITS); }
+<YYINITIAL> [iI][sS][vV][oO][iI][dD] { return new Symbol(TokenConstants.ISVOID); }
+<YYINITIAL> [lL][eE][tT] { return new Symbol(TokenConstants.LET); }
+<YYINITIAL> [lL][oO][oO][pP] { return new Symbol(TokenConstants.LOOP); }
+<YYINITIAL> [pP][oO][oO][lL] { return new Symbol(TokenConstants.POOL); }
+<YYINITIAL> [tT][hH][eE][nN] { return new Symbol(TokenConstants.THEN); }
+<YYINITIAL> [wW][hH][iI][lL][eE] { return new Symbol(TokenConstants.WHILE); }
+<YYINITIAL> [cC][aA][sS][eE] { return new Symbol(TokenConstants.CASE); }
+<YYINITIAL> [eE][sS][aA][cC] { return new Symbol(TokenConstants.ESAC); }
+<YYINITIAL> [nN][eE][wW] { return new Symbol(TokenConstants.NEW); }
+<YYINITIAL> [oO][fF] { return new Symbol(TokenConstants.OF); }
+<YYINITIAL> [nN][oO][tT] { return new Symbol(TokenConstants.NOT); }
 
-<YYINITIAL> false { return new Symbol(TokenConstants.BOOL_CONST, Boolean.FALSE); }
-<YYINITIAL> true { return new Symbol(TokenConstants.BOOL_CONST, Boolean.TRUE); }
+<YYINITIAL> f[aA][lL][sS][eE] { return new Symbol(TokenConstants.BOOL_CONST, Boolean.FALSE); }
+<YYINITIAL> t[rR][uU][eE] { return new Symbol(TokenConstants.BOOL_CONST, Boolean.TRUE); }
 
 <YYINITIAL> {LOW_ALPHA}({ALPHA}|{DIGIT}|_)* {
   return new Symbol(TokenConstants.OBJECTID, new IdSymbol(yytext(), yytext().length(), -1));
@@ -143,8 +146,14 @@ WHITE_SPACE_CHAR=[\n\ \f\t\v]
   return new Symbol(TokenConstants.INT_CONST, new IdSymbol(yytext(), yytext().length(), -1));
 }
 
-<YYINITIAL> \"[^\n\"]*\" {
+<YYINITIAL> \"{STRING_TEXT}\" {
   String str = yytext().substring(1,yytext().length() - 1);
+  str = str.replace("\\b", "\b");
+  str = str.replace("\\t", "\t");
+  str = str.replace("\\n", "\n");
+  str = str.replace("\\f", "\f");
+  if (str.contains("\0"))
+    return new Symbol(TokenConstants.ERROR, "String contains null character.");
   return new Symbol(TokenConstants.STR_CONST, new StringSymbol(str, str.length(), -1));
 }
 
@@ -159,12 +168,15 @@ WHITE_SPACE_CHAR=[\n\ \f\t\v]
 <YYINITIAL>"/" { return new Symbol(TokenConstants.DIV); }
 <YYINITIAL>"-" { return new Symbol(TokenConstants.MINUS); }
 <YYINITIAL>"*" { return new Symbol(TokenConstants.MULT); }
+<YYINITIAL>"@" { return new Symbol(TokenConstants.AT); }
 
 <YYINITIAL>"=" { return new Symbol(TokenConstants.EQ); }
 <YYINITIAL>"<" { return new Symbol(TokenConstants.LT); }
 <YYINITIAL>"." { return new Symbol(TokenConstants.DOT); }
 <YYINITIAL>"~" { return new Symbol(TokenConstants.NEG); }
 <YYINITIAL>"," { return new Symbol(TokenConstants.COMMA); }
+
+<YYINITIAL>"<=" { return new Symbol(TokenConstants.LE); }
 
 <YYINITIAL>"<-" { return new Symbol(TokenConstants.ASSIGN); }
 
