@@ -70,11 +70,14 @@ nonterminal class_c class;
 nonterminal Features feature_list;
 nonterminal Feature feature;
 
+nonterminal Cases case_list;
+nonterminal Case case;
 nonterminal Expressions expr_list;
 nonterminal Expression expr;
+nonterminal Expression opt_init;
+nonterminal Expression let_tail;
 
 /* Precedence declarations go here. */
-
 program	
 	::= class_list:cl
 	    {: RESULT = new programc(curr_lineno(), cl); :}
@@ -99,12 +102,11 @@ class
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
 	;
 
-/* Feature list may be empty, but no empty features in list. */
 feature_list
 	::= /* empty */
 	    {: RESULT = new Features(curr_lineno()); :}
 	| feature:f
-	  {: RESULT = new Features(curr_lineno()).appendElement(f); :}
+	  {: RESULT = (new Features(curr_lineno())).appendElement(f); :}
 	| feature_list:fl feature:f
 	  {: RESULT = fl.appendElement(f); :}
 	;
@@ -117,7 +119,81 @@ feature
 	    {: RESULT = new attr(curr_lineno(), oid, tid, e); :}
 	;
 
+case_list
+	::= case:c
+	  {: RESULT = (new Cases(curr_lineno())).appendElement(c); :}
+	| case_list:cl case:c
+	  {: RESULT = cl.appendElement(c); :}
+	;
+
+case
+	::= OBJECTID:oid COLON TYPEID:tid DARROW expr:e SEMI
+	    {: RESULT = new branch(curr_lineno(), oid, tid, e); :}
+	;
+
+opt_init
+	::= /* empty */
+	    {: RESULT = new no_expr(curr_lineno()); :}
+	| ASSIGN expr:init
+	  {: RESULT = init; :}
+	;
+
+let_tail
+	::= IN expr:e
+	  {: RESULT = e; :}
+	| COMMA OBJECTID:oid COLON TYPEID:tid opt_init:oinit let_tail:lt
+	  {: RESULT = new let(curr_lineno(), oid, tid, oinit, lt); :}
+	;
+
+expr_list
+	::= expr:e SEMI
+            {: RESULT = (new Expressions(curr_lineno())).appendElement(e); :}
+        | expr_list:el expr:e SEMI
+            {: RESULT = el.appendElement(e); :}
+        ;  
+
 expr
-	::= INT_CONST:ic
-	    {: RESULT = new int_const(curr_lineno(), ic); :}
+	::=
+	IF expr:e1 THEN expr:e2 ELSE expr:e3 FI
+	  {: RESULT = new cond(curr_lineno(), e1, e2, e3); :}
+	| WHILE expr:e1 LOOP expr:e2 POOL
+	  {: RESULT = new loop(curr_lineno(), e1, e2); :}
+	| LBRACE expr_list:el RBRACE
+	  {: RESULT = new block(curr_lineno(), el); :}
+	| LET OBJECTID:oid COLON TYPEID:tid opt_init:oinit let_tail:t
+	  {: RESULT = new let(curr_lineno(), oid, tid, oinit, t); :}
+	| CASE expr:e OF case_list:cl ESAC
+	  {: RESULT = new typcase(curr_lineno(), e, cl); :}
+	| NEW TYPEID:tid
+	  {: RESULT = new new_(curr_lineno(), tid); :}
+	| ISVOID expr:e
+	  {: RESULT = new isvoid(curr_lineno(), e); :}
+	| expr:e1 PLUS expr:e2
+	  {: RESULT = new plus(curr_lineno(), e1, e2); :}
+	| expr:e1 MINUS expr:e2
+	  {: RESULT = new sub(curr_lineno(), e1, e2); :}
+	| expr:e1 MULT expr:e2
+	  {: RESULT = new mul(curr_lineno(), e1, e2); :}
+	| expr:e1 DIV expr:e2
+	  {: RESULT = new divide(curr_lineno(), e1, e2); :}
+	| NEG expr:e
+	  {: RESULT = new neg(curr_lineno(), e); :}
+	| expr:e1 LT expr:e2
+	  {: RESULT = new lt(curr_lineno(), e1, e2); :}
+	| expr:e1 LE expr:e2
+	  {: RESULT = new leq(curr_lineno(), e1, e2); :}
+	| expr:e1 EQ expr:e2
+	  {: RESULT = new eq(curr_lineno(), e1, e2); :}
+	| NOT expr:e
+	  {: RESULT = new comp(curr_lineno(), e); :}
+	| LPAREN expr:e RPAREN
+	  {: RESULT = e; :}
+	| OBJECTID:oid
+	  {: RESULT = new object(curr_lineno(), oid); :}
+	| INT_CONST:ic
+	  {: RESULT = new int_const(curr_lineno(), ic); :}
+	| STR_CONST:sc
+	  {: RESULT = new string_const(curr_lineno(), sc); :}
+	| BOOL_CONST:bc
+	  {: RESULT = new bool_const(curr_lineno(), bc); :}
 	;
