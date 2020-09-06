@@ -49,4 +49,8 @@ class C {
   getConst() : Int { 3 };
   getConst2(x : Int) : Int { 4 };
   getConst3(x : Int, y : Int) : Int { 5 };
+
+  moo2(a:String, b:Int, c:Int, d:Int) : Hello {
+     a + b + c + d
+  };
 };
