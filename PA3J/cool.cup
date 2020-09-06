@@ -73,6 +73,7 @@ nonterminal Feature feature;
 nonterminal Cases case_list;
 nonterminal Case case;
 nonterminal Expressions expr_list;
+nonterminal Expressions params_list;
 nonterminal Expression expr;
 nonterminal Expression opt_init;
 nonterminal Expression let_tail;
@@ -152,9 +153,28 @@ expr_list
             {: RESULT = el.appendElement(e); :}
         ;  
 
+params_list
+	::= /* empty */
+	  {: RESULT = new Expressions(curr_lineno()); :}
+	| expr:e
+	  {: RESULT = (new Expressions(curr_lineno())).appendElement(e); :}
+	| params_list:pl COMMA expr:e
+	  {: RESULT = pl.appendElement(e); :}
+	;
+
 expr
-	::=
-	IF expr:e1 THEN expr:e2 ELSE expr:e3 FI
+	::= OBJECTID:oid ASSIGN expr:e
+	  {: RESULT = new assign(curr_lineno(), oid, e); :}
+	| expr:e AT TYPEID:tid DOT OBJECTID:oid LPAREN params_list:pl RPAREN
+          {: RESULT = new static_dispatch(curr_lineno(), e, tid, oid, pl); :}
+	| expr:e DOT OBJECTID:oid LPAREN params_list:pl RPAREN
+          {: RESULT = new dispatch(curr_lineno(), e, oid, pl); :}
+	| OBJECTID:oid LPAREN params_list:pl RPAREN
+	  {:
+	    Expression selfExpr = new object(curr_lineno(), TreeConstants.self); 
+	    RESULT = new dispatch(curr_lineno(), selfExpr, oid, pl);
+	  :}
+	| IF expr:e1 THEN expr:e2 ELSE expr:e3 FI
 	  {: RESULT = new cond(curr_lineno(), e1, e2, e3); :}
 	| WHILE expr:e1 LOOP expr:e2 POOL
 	  {: RESULT = new loop(curr_lineno(), e1, e2); :}

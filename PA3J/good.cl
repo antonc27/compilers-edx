@@ -39,4 +39,10 @@ class C {
   b13 : Bool <- { true; false; };
   obj1 : Object <- while false loop true pool;
   b14 : Bool <- if true then true else false fi;
+  sc : SomeClass <- method1();
+  sc1 : SomeClass <- method2(3);
+  sc2 : SomeClass <- method3(3, 4);
+  sc3 : SomeClass <- { self; }.method4();
+  sc4 : SomeClass <- { self; }@ParentClass.method5();
+  i10 : Int <- divisor <- 666;
 };
