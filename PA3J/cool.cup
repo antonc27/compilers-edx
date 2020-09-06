@@ -111,6 +111,7 @@ class
 				   f, curr_filename()); :}
 	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE feature_list:f RBRACE SEMI
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
+	| error SEMI
 	;
 
 feature_list
@@ -131,6 +132,7 @@ feature
 	  {: RESULT = new attr(curr_lineno(), oid, tid, new no_expr(curr_lineno())); :}
 	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e SEMI
 	  {: RESULT = new attr(curr_lineno(), oid, tid, e); :}
+	| error SEMI
 	;
 
 formal_list
