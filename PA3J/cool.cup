@@ -69,7 +69,8 @@ nonterminal Classes class_list;
 nonterminal class_c class;
 nonterminal Features feature_list;
 nonterminal Feature feature;
-
+nonterminal Formals formal_list;
+nonterminal Formal formal;
 nonterminal Cases case_list;
 nonterminal Case case;
 nonterminal Expressions expr_list;
@@ -114,10 +115,27 @@ feature_list
 
 
 feature
-	::= OBJECTID:oid COLON TYPEID:tid SEMI
-	    {: RESULT = new attr(curr_lineno(), oid, tid, new no_expr(curr_lineno())); :}
+	::=
+	OBJECTID:oid LPAREN formal_list:fol RPAREN COLON TYPEID:tid LBRACE expr:e RBRACE SEMI
+	  {: RESULT = new method(curr_lineno(), oid, fol, tid, e); :}
+	| OBJECTID:oid COLON TYPEID:tid SEMI
+	  {: RESULT = new attr(curr_lineno(), oid, tid, new no_expr(curr_lineno())); :}
 	| OBJECTID:oid COLON TYPEID:tid ASSIGN expr:e SEMI
-	    {: RESULT = new attr(curr_lineno(), oid, tid, e); :}
+	  {: RESULT = new attr(curr_lineno(), oid, tid, e); :}
+	;
+
+formal_list
+	::= /* empty */
+	    {: RESULT = new Formals(curr_lineno()); :}
+	| formal:fo
+	  {: RESULT = (new Formals(curr_lineno())).appendElement(fo); :}
+	| formal_list:fol COMMA formal:fo
+	  {: RESULT = fol.appendElement(fo); :}
+	;
+
+formal
+	::= OBJECTID:oid COLON TYPEID:tid
+	    {: RESULT = new formalc(curr_lineno(), oid, tid); :}
 	;
 
 case_list

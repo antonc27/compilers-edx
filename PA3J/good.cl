@@ -45,4 +45,8 @@ class C {
   sc3 : SomeClass <- { self; }.method4();
   sc4 : SomeClass <- { self; }@ParentClass.method5();
   i10 : Int <- divisor <- 666;
+
+  getConst() : Int { 3 };
+  getConst2(x : Int) : Int { 4 };
+  getConst3(x : Int, y : Int) : Int { 5 };
 };
