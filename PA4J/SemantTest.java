@@ -3,6 +3,7 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.Permission;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SemantTest {
     @Test
     public void testExample() {
-        String programFilename = "tests/good.cl";
+        String programFilename = "tests/double_class.cl";
 
         runSemant(programFilename);
         checkAgainstRef(programFilename);
@@ -19,6 +20,7 @@ class SemantTest {
     private void runSemant(String programFilename) {
         InputStream stdIn = System.in;
         PrintStream stdOut = System.out;
+        PrintStream stdErr = System.err;
 
         String cmd = "../PA2J/lexer " + programFilename + " | ../PA3J/parser " + programFilename;
 
@@ -29,9 +31,11 @@ class SemantTest {
             Process process = processBuilder.start();
 
             System.setIn(process.getInputStream());
-            System.setOut(new PrintStream(new FileOutputStream(programFilename + "_test.txt")));
+            PrintStream ps = new PrintStream(new FileOutputStream(programFilename + "_test.txt"));
+            System.setOut(ps);
+            System.setErr(ps);
 
-            Semant.main(new String[] { programFilename });
+            runSemantWithoutExit(programFilename);
 
             process.waitFor();
         } catch (IOException | InterruptedException e) {
@@ -39,6 +43,19 @@ class SemantTest {
         } finally {
             System.setIn(stdIn);
             System.setOut(stdOut);
+            System.setErr(stdErr);
+        }
+    }
+
+    private void runSemantWithoutExit(String programFilename) {
+        //Before running the external Command
+        MySecurityManager secManager = new MySecurityManager();
+        System.setSecurityManager(secManager);
+
+        try {
+            Semant.main(new String[] { programFilename });
+        } catch (SecurityException e) {
+            //Do something if the external code used System.exit()
         }
     }
 
@@ -47,8 +64,6 @@ class SemantTest {
             List<String> file1 = Files.readAllLines(Paths.get(programFilename + "_ref.txt"));
             List<String> file2 = Files.readAllLines(Paths.get(programFilename + "_test.txt"));
 
-            assertEquals(file1.size(), file2.size());
-
             for (int i = 0; i < file1.size(); i++) {
                 String refString = file1.get(i);
                 if (refString.trim().startsWith("#")) {
@@ -56,10 +71,23 @@ class SemantTest {
                     continue;
                 }
                 String testString = file2.get(i);
-                assertEquals(refString, testString, "Failed at line " + (i+1));
+                assertEquals(
+                        refString.replaceFirst(":\\d+:", ""),
+                        testString.replaceFirst(":\\d+:", ""),
+                        "Failed at line " + (i+1));
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static class MySecurityManager extends SecurityManager {
+        @Override public void checkExit(int status) {
+            throw new SecurityException();
+        }
+
+        @Override public void checkPermission(Permission perm) {
+            // Allow other activities by default
         }
     }
 }

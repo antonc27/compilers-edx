@@ -1,4 +1,5 @@
 import java.io.PrintStream;
+import java.util.Enumeration;
 
 /**
  * This class may be used to contain the semantic information such as
@@ -177,7 +178,18 @@ class ClassTable {
         semantErrors = 0;
         errorStream = System.err;
 
-        /* fill this in */
+        SymbolTable map = new SymbolTable();
+        map.enterScope();
+
+        for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+            Object n = e.nextElement();
+            assert n instanceof class_c;
+            class_c c = (class_c)n;
+            if (map.probe(c.getName()) != null) {
+                semantError(c).println("Class " + c.getName() + " was previously defined.");
+            }
+            map.addId(c.getName(), c);
+        }
     }
 
     /**
