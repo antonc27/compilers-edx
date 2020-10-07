@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SemantTest {
     @ParameterizedTest
     @ValueSource(strings = {
-        "double_class.cl", "basic_redefine.cl", "basic_inheritance.cl"
+        "double_class.cl", "basic_redefine.cl", "basic_inheritance.cl", "missing_class.cl", "missing_main.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
@@ -82,6 +82,7 @@ class SemantTest {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            fail();
         }
     }
 
