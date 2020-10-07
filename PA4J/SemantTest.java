@@ -1,4 +1,5 @@
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -9,28 +10,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SemantTest {
-    @Test
-    public void testExample() {
-        String programFilename = "tests/double_class.cl";
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "double_class.cl", "basic_redefine.cl", "basic_inheritance.cl"
+    })
+    public void testExample(String programFilename) {
+        String programPath = "tests/" + programFilename;
 
-        runSemant(programFilename);
-        checkAgainstRef(programFilename);
-    }
-
-    @Test
-    public void testExample2() {
-        String programFilename = "tests/basic_redefine.cl";
-
-        runSemant(programFilename);
-        checkAgainstRef(programFilename);
-    }
-
-    @Test
-    public void testExample3() {
-        String programFilename = "tests/basic_inheritance.cl";
-
-        runSemant(programFilename);
-        checkAgainstRef(programFilename);
+        runSemant(programPath);
+        checkAgainstRef(programPath);
     }
 
     private void runSemant(String programFilename) {
