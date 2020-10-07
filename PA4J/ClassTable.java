@@ -1,5 +1,5 @@
 import java.io.PrintStream;
-import java.util.Enumeration;
+import java.util.*;
 
 /**
  * This class may be used to contain the semantic information such as
@@ -192,23 +192,95 @@ class ClassTable {
 
         installBasicClasses();
 
-        SymbolTable map = new SymbolTable();
-        map.enterScope();
+        SymbolTable declarations = new SymbolTable();
+        declarations.enterScope();
 
+        checkClassDeclarations(cls, declarations);
+        checkParentDeclarations(cls, declarations);
+
+        checkInheritanceTree(cls, buildInheritanceTree(cls, declarations));
+    }
+
+    private void checkClassDeclarations(Classes cls, SymbolTable declarations) {
         for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
             Object n = e.nextElement();
             assert n instanceof class_c;
             class_c c = (class_c)n;
-            if (map.probe(c.getName()) != null) {
+            if (declarations.probe(c.getName()) != null) {
                 semantError(c).println("Class " + c.getName() + " was previously defined.");
             }
             if (basicClasses.probe(c.getName()) != null) {
                 semantError(c).println("Redefinition of basic class " + c.getName() + ".");
             }
-            if (!c.getParent().equals(objectClass.getName()) && basicClasses.probe(c.getParent()) != null) {
-                semantError(c).println("Class " + c.getName() + " cannot inherit class " + c.getParent() + ".");
+            declarations.addId(c.getName(), c);
+        }
+        if (declarations.probe(TreeConstants.Main) == null) {
+            semantError().println("Class Main is not defined.");
+        }
+    }
+
+    private void checkParentDeclarations(Classes cls, SymbolTable declarations) {
+        for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+            class_c c = (class_c) e.nextElement();
+            AbstractSymbol child = c.getName();
+            AbstractSymbol parent = c.getParent();
+            if (!parent.equals(objectClass.getName()) && basicClasses.probe(parent) != null) {
+                semantError(c).println("Class " + child + " cannot inherit class " + parent + ".");
             }
-            map.addId(c.getName(), c);
+            if (declarations.probe(parent) == null && basicClasses.probe(parent) == null) {
+                semantError(c).println("Class " + child + " inherits from an undefined class " + parent + ".");
+            }
+        }
+    }
+
+    private Map<class_c, List<class_c>> buildInheritanceTree(Classes cls, SymbolTable declarations) {
+        Map<class_c, List<class_c>> res = new HashMap<class_c, List<class_c>>();
+        for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+            class_c c = (class_c) e.nextElement();
+            class_c parent = (class_c) declarations.probe(c.getParent());
+            if (parent == null) {
+                parent = (class_c) basicClasses.probe(c.getParent());
+            }
+            if (!res.containsKey(parent)) {
+                res.put(parent, new LinkedList<class_c>());
+            }
+            res.get(parent).add(c);
+        }
+        return res;
+    }
+
+    private void checkInheritanceTree(Classes classes, Map<class_c, List<class_c>> tree) {
+        Set<class_c> erronous = new HashSet<class_c>();
+        for (class_c cls : tree.keySet()) {
+            Set<class_c> seen = new HashSet<class_c>();
+            seen.add(cls);
+            checkCycle(tree, cls, seen, erronous);
+        }
+
+        List<class_c> reversed = new LinkedList<class_c>();
+        for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
+            class_c c = (class_c) e.nextElement();
+            reversed.add(0, c);
+        }
+
+        for (class_c c : reversed) {
+            if (erronous.contains(c)) {
+                semantError(c).println("Class " + c.getName() + ", or an ancestor of " + c.getName() + ", is involved in an inheritance cycle.");
+            }
+        }
+    }
+
+    private void checkCycle(Map<class_c, List<class_c>> tree, class_c next, Set<class_c> seen, Set<class_c> erronous) {
+        if (!tree.containsKey(next)) return;
+        for (class_c cls : tree.get(next)) {
+            if (seen.contains(cls)) {
+                if (erronous.contains(cls)) return;
+                erronous.addAll(seen);
+                return;
+            }
+            seen.add(cls);
+            checkCycle(tree, cls, seen, erronous);
+            seen.remove(cls);
         }
     }
 

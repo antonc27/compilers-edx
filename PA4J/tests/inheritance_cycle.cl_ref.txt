@@ -1,0 +1,6 @@
+tests/inheritance_cycle.cl:1: Class S, or an ancestor of S, is involved in an inheritance cycle.
+tests/inheritance_cycle.cl:1: Class T, or an ancestor of T, is involved in an inheritance cycle.
+tests/inheritance_cycle.cl:1: Class C, or an ancestor of C, is involved in an inheritance cycle.
+tests/inheritance_cycle.cl:1: Class A, or an ancestor of A, is involved in an inheritance cycle.
+tests/inheritance_cycle.cl:1: Class B, or an ancestor of B, is involved in an inheritance cycle.
+Compilation halted due to static semantic errors.
