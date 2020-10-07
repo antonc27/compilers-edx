@@ -10,6 +10,9 @@ class ClassTable {
     private int semantErrors;
     private PrintStream errorStream;
 
+    private class_c objectClass;
+    private SymbolTable basicClasses;
+
     /**
      * Creates data structures representing basic Cool classes (Object,
      * IO, Int, Bool, String).  Please note: as is this method does not
@@ -56,6 +59,7 @@ class ClassTable {
                                         TreeConstants.SELF_TYPE,
                                         new no_expr(0))),
                         filename);
+        objectClass = Object_class;
 
         // The IO class inherits from Object. Its methods are
         //        out_string(Str) : SELF_TYPE  writes a string to the output
@@ -171,12 +175,22 @@ class ClassTable {
 	/* Do somethind with Object_class, IO_class, Int_class,
            Bool_class, and Str_class here */
 
+        basicClasses = new SymbolTable();
+        basicClasses.enterScope();
+
+        basicClasses.addId(Object_class.getName(), Object_class);
+        basicClasses.addId(IO_class.getName(), IO_class);
+        basicClasses.addId(Int_class.getName(), Int_class);
+        basicClasses.addId(Bool_class.getName(), Bool_class);
+        basicClasses.addId(Str_class.getName(), Str_class);
     }
 
 
     public ClassTable(Classes cls) {
         semantErrors = 0;
         errorStream = System.err;
+
+        installBasicClasses();
 
         SymbolTable map = new SymbolTable();
         map.enterScope();
@@ -187,6 +201,12 @@ class ClassTable {
             class_c c = (class_c)n;
             if (map.probe(c.getName()) != null) {
                 semantError(c).println("Class " + c.getName() + " was previously defined.");
+            }
+            if (basicClasses.probe(c.getName()) != null) {
+                semantError(c).println("Redefinition of basic class " + c.getName() + ".");
+            }
+            if (!c.getParent().equals(objectClass.getName()) && basicClasses.probe(c.getParent()) != null) {
+                semantError(c).println("Class " + c.getName() + " cannot inherit class " + c.getParent() + ".");
             }
             map.addId(c.getName(), c);
         }

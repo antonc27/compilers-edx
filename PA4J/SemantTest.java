@@ -17,6 +17,22 @@ class SemantTest {
         checkAgainstRef(programFilename);
     }
 
+    @Test
+    public void testExample2() {
+        String programFilename = "tests/basic_redefine.cl";
+
+        runSemant(programFilename);
+        checkAgainstRef(programFilename);
+    }
+
+    @Test
+    public void testExample3() {
+        String programFilename = "tests/basic_inheritance.cl";
+
+        runSemant(programFilename);
+        checkAgainstRef(programFilename);
+    }
+
     private void runSemant(String programFilename) {
         InputStream stdIn = System.in;
         PrintStream stdOut = System.out;

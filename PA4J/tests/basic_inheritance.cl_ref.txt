@@ -1,0 +1,2 @@
+tests/basic_inheritance.cl:1: Class C cannot inherit class Int.
+Compilation halted due to static semantic errors.
