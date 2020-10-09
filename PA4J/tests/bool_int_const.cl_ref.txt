@@ -1,0 +1,25 @@
+#1
+_program
+  #1
+  _class
+    Main
+    Object
+    "tests/bool_int_const.cl"
+    (
+    #1
+    _method
+      b
+      Bool
+      #1
+      _bool
+        0
+      : Bool
+    #1
+    _method
+      main
+      Int
+      #1
+      _int
+        1
+      : Int
+    )

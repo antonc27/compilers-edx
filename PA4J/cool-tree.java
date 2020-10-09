@@ -214,6 +214,7 @@ abstract class Expression extends TreeNode {
         }
     }
 
+    public abstract AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass);
 }
 
 
@@ -322,7 +323,7 @@ class programc extends Program {
      * Creates "programc" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for classes
+     * @param a1         initial value for classes
      */
     public programc(int lineNumber, Classes a1) {
         super(lineNumber);
@@ -369,6 +370,20 @@ class programc extends Program {
         ClassTable classTable = new ClassTable(classes);
 
         /* some semantic analysis code may go here */
+        if (!classTable.errors()) {
+            SymbolTable objects = new SymbolTable();
+            SymbolTable methods = new SymbolTable();
+
+            for (Enumeration ce = classes.getElements(); ce.hasMoreElements(); ) {
+                class_c c = (class_c) ce.nextElement();
+                for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
+                    Feature f = (Feature) fe.nextElement();
+                    if (f instanceof method) {
+                        ((method) f).expr.type_check(objects, methods, c.getName());
+                    }
+                }
+            }
+        }
 
         if (classTable.errors()) {
             System.err.println("Compilation halted due to static semantic errors.");
@@ -394,10 +409,10 @@ class class_c extends Class_ {
      * Creates "class_c" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
-     * @param a1         initial value for parent
-     * @param a2         initial value for features
-     * @param a3         initial value for filename
+     * @param a1         initial value for name
+     * @param a2         initial value for parent
+     * @param a3         initial value for features
+     * @param a4         initial value for filename
      */
     public class_c(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Features a3, AbstractSymbol a4) {
         super(lineNumber);
@@ -464,10 +479,10 @@ class method extends Feature {
      * Creates "method" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
-     * @param a1         initial value for formals
-     * @param a2         initial value for return_type
-     * @param a3         initial value for expr
+     * @param a1         initial value for name
+     * @param a2         initial value for formals
+     * @param a3         initial value for return_type
+     * @param a4         initial value for expr
      */
     public method(int lineNumber, AbstractSymbol a1, Formals a2, AbstractSymbol a3, Expression a4) {
         super(lineNumber);
@@ -518,9 +533,9 @@ class attr extends Feature {
      * Creates "attr" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
-     * @param a1         initial value for type_decl
-     * @param a2         initial value for init
+     * @param a1         initial value for name
+     * @param a2         initial value for type_decl
+     * @param a3         initial value for init
      */
     public attr(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Expression a3) {
         super(lineNumber);
@@ -565,7 +580,7 @@ class formalc extends Formal {
      * Creates "formalc" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
+     * @param a1         initial value for name
      * @param a1         initial value for type_decl
      */
     public formalc(int lineNumber, AbstractSymbol a1, AbstractSymbol a2) {
@@ -609,9 +624,9 @@ class branch extends Case {
      * Creates "branch" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
-     * @param a1         initial value for type_decl
-     * @param a2         initial value for expr
+     * @param a1         initial value for name
+     * @param a2         initial value for type_decl
+     * @param a3         initial value for expr
      */
     public branch(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Expression a3) {
         super(lineNumber);
@@ -656,7 +671,7 @@ class assign extends Expression {
      * Creates "assign" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
+     * @param a1         initial value for name
      * @param a1         initial value for expr
      */
     public assign(int lineNumber, AbstractSymbol a1, Expression a2) {
@@ -684,6 +699,10 @@ class assign extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
 }
 
 
@@ -702,10 +721,10 @@ class static_dispatch extends Expression {
      * Creates "static_dispatch" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for expr
-     * @param a1         initial value for type_name
-     * @param a2         initial value for name
-     * @param a3         initial value for actual
+     * @param a1         initial value for expr
+     * @param a2         initial value for type_name
+     * @param a3         initial value for name
+     * @param a4         initial value for actual
      */
     public static_dispatch(int lineNumber, Expression a1, AbstractSymbol a2, AbstractSymbol a3, Expressions a4) {
         super(lineNumber);
@@ -742,6 +761,10 @@ class static_dispatch extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
 }
 
 
@@ -759,9 +782,9 @@ class dispatch extends Expression {
      * Creates "dispatch" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for expr
-     * @param a1         initial value for name
-     * @param a2         initial value for actual
+     * @param a1         initial value for expr
+     * @param a2         initial value for name
+     * @param a3         initial value for actual
      */
     public dispatch(int lineNumber, Expression a1, AbstractSymbol a2, Expressions a3) {
         super(lineNumber);
@@ -795,6 +818,10 @@ class dispatch extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
 }
 
 
@@ -812,9 +839,9 @@ class cond extends Expression {
      * Creates "cond" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for pred
-     * @param a1         initial value for then_exp
-     * @param a2         initial value for else_exp
+     * @param a1         initial value for pred
+     * @param a2         initial value for then_exp
+     * @param a3         initial value for else_exp
      */
     public cond(int lineNumber, Expression a1, Expression a2, Expression a3) {
         super(lineNumber);
@@ -844,6 +871,11 @@ class cond extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -860,7 +892,7 @@ class loop extends Expression {
      * Creates "loop" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for pred
+     * @param a1         initial value for pred
      * @param a1         initial value for body
      */
     public loop(int lineNumber, Expression a1, Expression a2) {
@@ -888,6 +920,11 @@ class loop extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -904,7 +941,7 @@ class typcase extends Expression {
      * Creates "typcase" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for expr
+     * @param a1         initial value for expr
      * @param a1         initial value for cases
      */
     public typcase(int lineNumber, Expression a1, Cases a2) {
@@ -934,6 +971,11 @@ class typcase extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -949,7 +991,7 @@ class block extends Expression {
      * Creates "block" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for body
+     * @param a1         initial value for body
      */
     public block(int lineNumber, Expressions a1) {
         super(lineNumber);
@@ -975,6 +1017,11 @@ class block extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -993,10 +1040,10 @@ class let extends Expression {
      * Creates "let" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for identifier
-     * @param a1         initial value for type_decl
-     * @param a2         initial value for init
-     * @param a3         initial value for body
+     * @param a1         initial value for identifier
+     * @param a2         initial value for type_decl
+     * @param a3         initial value for init
+     * @param a4         initial value for body
      */
     public let(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Expression a3, Expression a4) {
         super(lineNumber);
@@ -1029,6 +1076,11 @@ class let extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1045,7 +1097,7 @@ class plus extends Expression {
      * Creates "plus" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public plus(int lineNumber, Expression a1, Expression a2) {
@@ -1073,6 +1125,11 @@ class plus extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1089,7 +1146,7 @@ class sub extends Expression {
      * Creates "sub" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public sub(int lineNumber, Expression a1, Expression a2) {
@@ -1117,6 +1174,11 @@ class sub extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1133,7 +1195,7 @@ class mul extends Expression {
      * Creates "mul" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public mul(int lineNumber, Expression a1, Expression a2) {
@@ -1161,6 +1223,11 @@ class mul extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1177,7 +1244,7 @@ class divide extends Expression {
      * Creates "divide" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public divide(int lineNumber, Expression a1, Expression a2) {
@@ -1205,6 +1272,11 @@ class divide extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1220,7 +1292,7 @@ class neg extends Expression {
      * Creates "neg" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      */
     public neg(int lineNumber, Expression a1) {
         super(lineNumber);
@@ -1244,6 +1316,11 @@ class neg extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1260,7 +1337,7 @@ class lt extends Expression {
      * Creates "lt" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public lt(int lineNumber, Expression a1, Expression a2) {
@@ -1288,6 +1365,11 @@ class lt extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1304,7 +1386,7 @@ class eq extends Expression {
      * Creates "eq" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public eq(int lineNumber, Expression a1, Expression a2) {
@@ -1332,6 +1414,11 @@ class eq extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1348,7 +1435,7 @@ class leq extends Expression {
      * Creates "leq" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      * @param a1         initial value for e2
      */
     public leq(int lineNumber, Expression a1, Expression a2) {
@@ -1376,6 +1463,11 @@ class leq extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1391,7 +1483,7 @@ class comp extends Expression {
      * Creates "comp" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      */
     public comp(int lineNumber, Expression a1) {
         super(lineNumber);
@@ -1415,6 +1507,11 @@ class comp extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1430,7 +1527,7 @@ class int_const extends Expression {
      * Creates "int_const" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for token
+     * @param a1         initial value for token
      */
     public int_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -1454,6 +1551,12 @@ class int_const extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        set_type(TreeConstants.Int);
+        return TreeConstants.Int;
+    }
+
 }
 
 
@@ -1469,7 +1572,7 @@ class bool_const extends Expression {
      * Creates "bool_const" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for val
+     * @param a1         initial value for val
      */
     public bool_const(int lineNumber, Boolean a1) {
         super(lineNumber);
@@ -1493,6 +1596,12 @@ class bool_const extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        set_type(TreeConstants.Bool);
+        return TreeConstants.Bool;
+    }
+
 }
 
 
@@ -1508,7 +1617,7 @@ class string_const extends Expression {
      * Creates "string_const" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for token
+     * @param a1         initial value for token
      */
     public string_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -1534,6 +1643,11 @@ class string_const extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1549,7 +1663,7 @@ class new_ extends Expression {
      * Creates "new_" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for type_name
+     * @param a1         initial value for type_name
      */
     public new_(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -1573,6 +1687,11 @@ class new_ extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1588,7 +1707,7 @@ class isvoid extends Expression {
      * Creates "isvoid" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for e1
+     * @param a1         initial value for e1
      */
     public isvoid(int lineNumber, Expression a1) {
         super(lineNumber);
@@ -1610,6 +1729,11 @@ class isvoid extends Expression {
         out.println(Utilities.pad(n) + "_isvoid");
         e1.dump_with_types(out, n + 2);
         dump_type(out, n);
+    }
+
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
     }
 
 }
@@ -1645,6 +1769,11 @@ class no_expr extends Expression {
         dump_type(out, n);
     }
 
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
+    }
+
 }
 
 
@@ -1660,7 +1789,7 @@ class object extends Expression {
      * Creates "object" AST node.
      *
      * @param lineNumber the line in the source file from which this node came.
-     * @param a0         initial value for name
+     * @param a1         initial value for name
      */
     public object(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -1682,6 +1811,11 @@ class object extends Expression {
         out.println(Utilities.pad(n) + "_object");
         dump_AbstractSymbol(out, n + 2, name);
         dump_type(out, n);
+    }
+
+    @Override
+    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+        return null;
     }
 
 }

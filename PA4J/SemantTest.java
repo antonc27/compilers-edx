@@ -13,7 +13,7 @@ class SemantTest {
     @ParameterizedTest
     @ValueSource(strings = {
         "double_class.cl", "basic_redefine.cl", "basic_inheritance.cl", "missing_class.cl", "missing_main.cl",
-        "inheritance_cycle.cl"
+        "inheritance_cycle.cl", "bool_int_const.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
