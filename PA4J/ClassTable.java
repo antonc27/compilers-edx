@@ -10,6 +10,8 @@ class ClassTable {
     private int semantErrors;
     private PrintStream errorStream;
 
+    private Classes classes;
+
     private class_c objectClass;
     private SymbolTable basicClasses;
 
@@ -190,19 +192,41 @@ class ClassTable {
         semantErrors = 0;
         errorStream = System.err;
 
+        classes = cls;
+
         installBasicClasses();
 
         SymbolTable declarations = new SymbolTable();
         declarations.enterScope();
 
-        checkClassDeclarations(cls, declarations);
-        checkParentDeclarations(cls, declarations);
+        checkClassDeclarations(declarations);
+        checkParentDeclarations(declarations);
 
-        checkInheritanceTree(cls, buildInheritanceTree(cls, declarations));
+        checkInheritanceTree(buildInheritanceTree(declarations));
     }
 
-    private void checkClassDeclarations(Classes cls, SymbolTable declarations) {
-        for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+    public void doTypeCheck() {
+        SymbolTable objects = new SymbolTable();
+        SymbolTable methods = new SymbolTable();
+
+        for (Enumeration ce = classes.getElements(); ce.hasMoreElements(); ) {
+            class_c c = (class_c) ce.nextElement();
+            for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
+                Feature f = (Feature) fe.nextElement();
+                if (f instanceof method) {
+                    method m = (method) f;
+                    AbstractSymbol expectedType = m.return_type;
+                    AbstractSymbol actualType = m.expr.type_check(objects, methods, c.getName());
+                    if (expectedType != actualType) {
+                        semantError(c).println("Inferred return type " + actualType + " of method " + m.name + " does not conform to declared return type " + expectedType + ".");
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkClassDeclarations(SymbolTable declarations) {
+        for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             Object n = e.nextElement();
             assert n instanceof class_c;
             class_c c = (class_c)n;
@@ -219,8 +243,8 @@ class ClassTable {
         }
     }
 
-    private void checkParentDeclarations(Classes cls, SymbolTable declarations) {
-        for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+    private void checkParentDeclarations(SymbolTable declarations) {
+        for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             class_c c = (class_c) e.nextElement();
             AbstractSymbol child = c.getName();
             AbstractSymbol parent = c.getParent();
@@ -233,9 +257,9 @@ class ClassTable {
         }
     }
 
-    private Map<class_c, List<class_c>> buildInheritanceTree(Classes cls, SymbolTable declarations) {
+    private Map<class_c, List<class_c>> buildInheritanceTree(SymbolTable declarations) {
         Map<class_c, List<class_c>> res = new HashMap<class_c, List<class_c>>();
-        for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+        for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             class_c c = (class_c) e.nextElement();
             class_c parent = (class_c) declarations.probe(c.getParent());
             if (parent == null) {
@@ -249,7 +273,7 @@ class ClassTable {
         return res;
     }
 
-    private void checkInheritanceTree(Classes classes, Map<class_c, List<class_c>> tree) {
+    private void checkInheritanceTree(Map<class_c, List<class_c>> tree) {
         Set<class_c> erronous = new HashSet<class_c>();
         for (class_c cls : tree.keySet()) {
             Set<class_c> seen = new HashSet<class_c>();

@@ -371,18 +371,7 @@ class programc extends Program {
 
         /* some semantic analysis code may go here */
         if (!classTable.errors()) {
-            SymbolTable objects = new SymbolTable();
-            SymbolTable methods = new SymbolTable();
-
-            for (Enumeration ce = classes.getElements(); ce.hasMoreElements(); ) {
-                class_c c = (class_c) ce.nextElement();
-                for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
-                    Feature f = (Feature) fe.nextElement();
-                    if (f instanceof method) {
-                        ((method) f).expr.type_check(objects, methods, c.getName());
-                    }
-                }
-            }
+            classTable.doTypeCheck();
         }
 
         if (classTable.errors()) {
@@ -1019,7 +1008,11 @@ class block extends Expression {
 
     @Override
     public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
-        return null;
+        AbstractSymbol last = null;
+        for (Enumeration e = body.getElements(); e.hasMoreElements(); ) {
+            last = ((Expression) e.nextElement()).type_check(objects, methods, currentClass);
+        }
+        return last;
     }
 
 }
