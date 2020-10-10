@@ -509,7 +509,7 @@ class method extends Feature {
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         AbstractSymbol expectedType = return_type;
-        AbstractSymbol actualType = expr.type_check(null, objects, methods, currentClass);
+        AbstractSymbol actualType = expr.type_check(classTable, objects, methods, currentClass);
         if (expectedType != actualType) {
             classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + expectedType + ".");
             return TreeConstants.Object_;
@@ -1135,7 +1135,15 @@ class plus extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        if (type1 == TreeConstants.Int && type2 == TreeConstants.Int) {
+            set_type(TreeConstants.Int);
+            return TreeConstants.Int;
+        }
+        classTable.semantError(currentClass).println("non-Int arguments: " + type1 + " + " + type2 + "");
+        set_type(TreeConstants.Object_);
+        return TreeConstants.Object_;
     }
 
 }
@@ -1184,7 +1192,15 @@ class sub extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        if (type1 == TreeConstants.Int && type2 == TreeConstants.Int) {
+            set_type(TreeConstants.Int);
+            return TreeConstants.Int;
+        }
+        classTable.semantError(currentClass).println("non-Int arguments: " + type1 + " - " + type2 + "");
+        set_type(TreeConstants.Object_);
+        return TreeConstants.Object_;
     }
 
 }
@@ -1233,7 +1249,15 @@ class mul extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        if (type1 == TreeConstants.Int && type2 == TreeConstants.Int) {
+            set_type(TreeConstants.Int);
+            return TreeConstants.Int;
+        }
+        classTable.semantError(currentClass).println("non-Int arguments: " + type1 + " * " + type2 + "");
+        set_type(TreeConstants.Object_);
+        return TreeConstants.Object_;
     }
 
 }
@@ -1282,7 +1306,15 @@ class divide extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        if (type1 == TreeConstants.Int && type2 == TreeConstants.Int) {
+            set_type(TreeConstants.Int);
+            return TreeConstants.Int;
+        }
+        classTable.semantError(currentClass).println("non-Int arguments: " + type1 + " / " + type2 + "");
+        set_type(TreeConstants.Object_);
+        return TreeConstants.Object_;
     }
 
 }

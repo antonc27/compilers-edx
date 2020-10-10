@@ -1,0 +1,2 @@
+tests/invalid_arithmetic.cl:4: non-Int arguments: Int + String
+Compilation halted due to static semantic errors.
