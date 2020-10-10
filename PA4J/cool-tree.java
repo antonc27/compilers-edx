@@ -895,7 +895,12 @@ class cond extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        pred.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol thenType = then_exp.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol elseType = else_exp.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol lubType = classTable.lub(thenType, elseType);
+        set_type(lubType);
+        return lubType;
     }
 
 }

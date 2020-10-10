@@ -249,6 +249,41 @@ class ClassTable {
         return subtype.getName() == type.getName();
     }
 
+    public AbstractSymbol lub(AbstractSymbol typeSymbol1, AbstractSymbol typeSymbol2) {
+        class_c type1 = getClassDeclaration(typeSymbol1);
+        assert type1 != null;
+        class_c type2 = getClassDeclaration(typeSymbol2);
+        assert type2 != null;
+
+        List<AbstractSymbol> path1 = new LinkedList<AbstractSymbol>();
+        while (type1.getName() != TreeConstants.Object_) {
+            path1.add(0, type1.getName());
+
+            type1 = getClassDeclaration(type1.getParent());
+        }
+        path1.add(0, type1.getName());
+
+        List<AbstractSymbol> path2 = new LinkedList<AbstractSymbol>();
+        while (type2.getName() != TreeConstants.Object_) {
+            path2.add(0, type2.getName());
+
+            type2 = getClassDeclaration(type2.getParent());
+        }
+        path2.add(0, type2.getName());
+
+        AbstractSymbol lub = TreeConstants.Object_;
+        Iterator<AbstractSymbol> li1 = path1.iterator();
+        Iterator<AbstractSymbol> li2 = path2.iterator();
+        while (li1.hasNext() && li2.hasNext()) {
+            AbstractSymbol a1 = li1.next();
+            AbstractSymbol a2 = li2.next();
+
+            if (a1 != a2) break;
+            lub = a1;
+        }
+        return lub;
+    }
+
     private class_c getClassDeclaration(AbstractSymbol className) {
         class_c classDeclaration = (class_c) basicClasses.probe(className);
         if (classDeclaration == null) {
