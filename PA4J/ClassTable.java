@@ -12,7 +12,6 @@ class ClassTable {
 
     private Classes classes;
 
-    private class_c objectClass;
     private SymbolTable basicClasses;
 
     private SymbolTable classDeclarations;
@@ -63,7 +62,6 @@ class ClassTable {
                                         TreeConstants.SELF_TYPE,
                                         new no_expr(0))),
                         filename);
-        objectClass = Object_class;
 
         // The IO class inherits from Object. Its methods are
         //        out_string(Str) : SELF_TYPE  writes a string to the output
@@ -206,6 +204,8 @@ class ClassTable {
 
     public void doTypeCheck() {
         SymbolTable objects = new SymbolTable();
+        objects.enterScope();
+
         SymbolTable methods = new SymbolTable();
 
         for (Enumeration ce = classes.getElements(); ce.hasMoreElements(); ) {
@@ -270,7 +270,7 @@ class ClassTable {
             class_c c = (class_c) e.nextElement();
             AbstractSymbol child = c.getName();
             AbstractSymbol parent = c.getParent();
-            if (!parent.equals(objectClass.getName()) && basicClasses.probe(parent) != null) {
+            if (!parent.equals(TreeConstants.Object_) && !parent.equals(TreeConstants.IO) && basicClasses.probe(parent) != null) {
                 semantError(c).println("Class " + child + " cannot inherit class " + parent + ".");
             }
             if (classDeclarations.probe(parent) == null && basicClasses.probe(parent) == null) {

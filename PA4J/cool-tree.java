@@ -1096,7 +1096,20 @@ class let extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        objects.enterScope();
+        objects.addId(identifier, type_decl);
+        AbstractSymbol bodyType = body.type_check(classTable, objects, methods, currentClass);
+        objects.exitScope();
+        if (!(init instanceof no_expr)) {
+            AbstractSymbol initType = init.type_check(classTable, objects, methods, currentClass);
+            if (!classTable.isSubtype(initType, type_decl)) {
+                classTable.semantError(currentClass).println("Inferred type " + initType + " of initialization of " + identifier + " does not conform to identifier's declared type " + type_decl + ".");
+                set_type(TreeConstants.Object_);
+                return TreeConstants.Object_;
+            }
+        }
+        set_type(bodyType);
+        return bodyType;
     }
 
 }
@@ -1870,7 +1883,14 @@ class object extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol objectType = (AbstractSymbol) objects.lookup(name);
+        if (objectType == null) {
+            classTable.semantError(currentClass).println("Undeclared identifier " + name + ".");
+            set_type(TreeConstants.Object_);
+            return TreeConstants.Object_;
+        }
+        set_type(objectType);
+        return objectType;
     }
 
 }

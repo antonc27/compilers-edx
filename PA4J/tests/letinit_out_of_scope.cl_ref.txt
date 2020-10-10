@@ -1,0 +1,2 @@
+tests/letinit_out_of_scope.cl:1: Undeclared identifier x.
+Compilation halted due to static semantic errors.
