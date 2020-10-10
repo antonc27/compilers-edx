@@ -510,7 +510,7 @@ class method extends Feature {
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         AbstractSymbol expectedType = return_type;
         AbstractSymbol actualType = expr.type_check(classTable, objects, methods, currentClass);
-        if (expectedType != actualType) {
+        if (!classTable.isSubtype(actualType, expectedType)) {
             classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + expectedType + ".");
             return TreeConstants.Object_;
         }
@@ -1027,6 +1027,7 @@ class block extends Expression {
         for (Enumeration e = body.getElements(); e.hasMoreElements(); ) {
             last = ((Expression) e.nextElement()).type_check(classTable, objects, methods, currentClass);
         }
+        set_type(last);
         return last;
     }
 

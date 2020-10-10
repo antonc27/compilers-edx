@@ -15,6 +15,8 @@ class ClassTable {
     private class_c objectClass;
     private SymbolTable basicClasses;
 
+    private SymbolTable classDeclarations;
+
     /**
      * Creates data structures representing basic Cool classes (Object,
      * IO, Int, Bool, String).  Please note: as is this method does not
@@ -196,13 +198,10 @@ class ClassTable {
 
         installBasicClasses();
 
-        SymbolTable declarations = new SymbolTable();
-        declarations.enterScope();
+        classDeclarations = buildAndCheckClassDeclarations();
+        checkParentDeclarations();
 
-        checkClassDeclarations(declarations);
-        checkParentDeclarations(declarations);
-
-        checkInheritanceTree(buildInheritanceTree(declarations));
+        checkInheritanceTree(buildInheritanceTree());
     }
 
     public void doTypeCheck() {
@@ -218,7 +217,32 @@ class ClassTable {
         }
     }
 
-    private void checkClassDeclarations(SymbolTable declarations) {
+    public boolean isSubtype(AbstractSymbol subtypeSymbol, AbstractSymbol typeSymbol) {
+        class_c type = getClassDeclaration(typeSymbol);
+        assert type != null;
+        class_c subtype = getClassDeclaration(subtypeSymbol);
+        assert subtype != null;
+        while (subtype.getName() != TreeConstants.Object_) {
+            if (subtype.getName() == type.getName()) {
+                break;
+            }
+
+            subtype = getClassDeclaration(subtype.getParent());
+        }
+        return subtype.getName() == type.getName();
+    }
+
+    private class_c getClassDeclaration(AbstractSymbol className) {
+        class_c classDeclaration = (class_c) basicClasses.probe(className);
+        if (classDeclaration == null) {
+            classDeclaration = (class_c) classDeclarations.probe(className);
+        }
+        return classDeclaration;
+    }
+
+    private SymbolTable buildAndCheckClassDeclarations() {
+        SymbolTable declarations = new SymbolTable();
+        declarations.enterScope();
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             Object n = e.nextElement();
             assert n instanceof class_c;
@@ -234,9 +258,10 @@ class ClassTable {
         if (declarations.probe(TreeConstants.Main) == null) {
             semantError().println("Class Main is not defined.");
         }
+        return declarations;
     }
 
-    private void checkParentDeclarations(SymbolTable declarations) {
+    private void checkParentDeclarations() {
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             class_c c = (class_c) e.nextElement();
             AbstractSymbol child = c.getName();
@@ -244,17 +269,17 @@ class ClassTable {
             if (!parent.equals(objectClass.getName()) && basicClasses.probe(parent) != null) {
                 semantError(c).println("Class " + child + " cannot inherit class " + parent + ".");
             }
-            if (declarations.probe(parent) == null && basicClasses.probe(parent) == null) {
+            if (classDeclarations.probe(parent) == null && basicClasses.probe(parent) == null) {
                 semantError(c).println("Class " + child + " inherits from an undefined class " + parent + ".");
             }
         }
     }
 
-    private Map<class_c, List<class_c>> buildInheritanceTree(SymbolTable declarations) {
+    private Map<class_c, List<class_c>> buildInheritanceTree() {
         Map<class_c, List<class_c>> res = new HashMap<class_c, List<class_c>>();
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             class_c c = (class_c) e.nextElement();
-            class_c parent = (class_c) declarations.probe(c.getParent());
+            class_c parent = (class_c) classDeclarations.probe(c.getParent());
             if (parent == null) {
                 parent = (class_c) basicClasses.probe(c.getParent());
             }

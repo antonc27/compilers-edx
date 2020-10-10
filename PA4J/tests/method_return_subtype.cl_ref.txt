@@ -1,0 +1,17 @@
+#1
+_program
+  #1
+  _class
+    Main
+    Object
+    "tests/method_return_subtype.cl"
+    (
+    #1
+    _method
+      main
+      Object
+      #1
+      _int
+        1
+      : Int
+    )
