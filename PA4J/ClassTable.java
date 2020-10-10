@@ -213,14 +213,7 @@ class ClassTable {
             class_c c = (class_c) ce.nextElement();
             for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
                 Feature f = (Feature) fe.nextElement();
-                if (f instanceof method) {
-                    method m = (method) f;
-                    AbstractSymbol expectedType = m.return_type;
-                    AbstractSymbol actualType = m.expr.type_check(objects, methods, c.getName());
-                    if (expectedType != actualType) {
-                        semantError(c).println("Inferred return type " + actualType + " of method " + m.name + " does not conform to declared return type " + expectedType + ".");
-                    }
-                }
+                f.type_check(this, objects, methods, c);
             }
         }
     }

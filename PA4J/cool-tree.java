@@ -89,6 +89,7 @@ abstract class Feature extends TreeNode {
 
     public abstract void dump_with_types(PrintStream out, int n);
 
+    public abstract AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass);
 }
 
 
@@ -214,7 +215,7 @@ abstract class Expression extends TreeNode {
         }
     }
 
-    public abstract AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass);
+    public abstract AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass);
 }
 
 
@@ -505,6 +506,16 @@ class method extends Feature {
         expr.dump_with_types(out, n + 2);
     }
 
+    @Override
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
+        AbstractSymbol expectedType = return_type;
+        AbstractSymbol actualType = expr.type_check(null, objects, methods, currentClass);
+        if (expectedType != actualType) {
+            classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + expectedType + ".");
+            return TreeConstants.Object_;
+        }
+        return return_type;
+    }
 }
 
 
@@ -553,6 +564,10 @@ class attr extends Feature {
         init.dump_with_types(out, n + 2);
     }
 
+    @Override
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
+        return null;
+    }
 }
 
 
@@ -689,7 +704,7 @@ class assign extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 }
@@ -751,7 +766,7 @@ class static_dispatch extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 }
@@ -808,7 +823,7 @@ class dispatch extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 }
@@ -861,7 +876,7 @@ class cond extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -910,7 +925,7 @@ class loop extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -961,7 +976,7 @@ class typcase extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1007,10 +1022,10 @@ class block extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         AbstractSymbol last = null;
         for (Enumeration e = body.getElements(); e.hasMoreElements(); ) {
-            last = ((Expression) e.nextElement()).type_check(objects, methods, currentClass);
+            last = ((Expression) e.nextElement()).type_check(classTable, objects, methods, currentClass);
         }
         return last;
     }
@@ -1070,7 +1085,7 @@ class let extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1119,7 +1134,7 @@ class plus extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1168,7 +1183,7 @@ class sub extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1217,7 +1232,7 @@ class mul extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1266,7 +1281,7 @@ class divide extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1310,7 +1325,7 @@ class neg extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1359,7 +1374,7 @@ class lt extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1408,7 +1423,7 @@ class eq extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1457,7 +1472,7 @@ class leq extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1501,7 +1516,7 @@ class comp extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1545,7 +1560,7 @@ class int_const extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         set_type(TreeConstants.Int);
         return TreeConstants.Int;
     }
@@ -1590,7 +1605,7 @@ class bool_const extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         set_type(TreeConstants.Bool);
         return TreeConstants.Bool;
     }
@@ -1637,7 +1652,7 @@ class string_const extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         set_type(TreeConstants.Str);
         return TreeConstants.Str;
     }
@@ -1682,7 +1697,7 @@ class new_ extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1726,7 +1741,7 @@ class isvoid extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1764,7 +1779,7 @@ class no_expr extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
@@ -1808,7 +1823,7 @@ class object extends Expression {
     }
 
     @Override
-    public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         return null;
     }
 
