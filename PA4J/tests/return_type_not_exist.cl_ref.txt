@@ -1,0 +1,3 @@
+tests/return_type_not_exist.cl:1: Undefined return type PinkElephant in method main.
+tests/return_type_not_exist.cl:1: 'new' used with undefined class PinkElephant.
+Compilation halted due to static semantic errors.

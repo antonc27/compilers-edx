@@ -508,10 +508,19 @@ class method extends Feature {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        AbstractSymbol expectedType = return_type;
+        boolean hasBadReturnType = false;
+        if (!classTable.typeExists(return_type)) {
+            classTable.semantError(currentClass).println("Undefined return type " + return_type + " in method " + name + ".");
+            // do not return immediately, wait for type check of expr
+            // (better handle order of errors ?)
+            hasBadReturnType = true;
+        }
         AbstractSymbol actualType = expr.type_check(classTable, objects, methods, currentClass);
-        if (!classTable.isSubtype(actualType, expectedType)) {
-            classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + expectedType + ".");
+        if (hasBadReturnType) {
+            return TreeConstants.Object_;
+        }
+        if (!classTable.isSubtype(actualType, return_type)) {
+            classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + return_type + ".");
             return TreeConstants.Object_;
         }
         return return_type;
@@ -1731,7 +1740,11 @@ class new_ extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        if (!classTable.typeExists(type_name)) {
+            classTable.semantError(currentClass).println("'new' used with undefined class " + type_name + ".");
+            return TreeConstants.Object_;
+        }
+        return type_name;
     }
 
 }

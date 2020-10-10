@@ -217,6 +217,10 @@ class ClassTable {
         }
     }
 
+    public boolean typeExists(AbstractSymbol typeSymbol) {
+        return getClassDeclaration(typeSymbol) != null;
+    }
+
     public boolean isSubtype(AbstractSymbol subtypeSymbol, AbstractSymbol typeSymbol) {
         class_c type = getClassDeclaration(typeSymbol);
         assert type != null;
