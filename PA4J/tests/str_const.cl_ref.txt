@@ -1,0 +1,17 @@
+#1
+_program
+  #1
+  _class
+    Main
+    Object
+    "tests/str_const.cl"
+    (
+    #1
+    _method
+      main
+      String
+      #1
+      _string
+        "hello"
+      : String
+    )

@@ -1638,7 +1638,8 @@ class string_const extends Expression {
 
     @Override
     public AbstractSymbol type_check(SymbolTable objects, SymbolTable methods, AbstractSymbol currentClass) {
-        return null;
+        set_type(TreeConstants.Str);
+        return TreeConstants.Str;
     }
 
 }
