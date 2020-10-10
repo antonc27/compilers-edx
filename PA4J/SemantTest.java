@@ -15,7 +15,8 @@ class SemantTest {
         "double_class.cl", "basic_redefine.cl", "basic_inheritance.cl", "missing_class.cl", "missing_main.cl",
         "inheritance_cycle.cl", "bool_int_const.cl", "invalid_return_type.cl", "str_const.cl", "valid_arithmetic.cl",
         "invalid_arithmetic.cl", "method_return_subtype.cl", "simple_arithmetic.cl", "return_type_not_exist.cl",
-        "valid_letinit.cl", "letinit_out_of_scope.cl", "letbadinit.cl", "letnoinit.cl"
+        "valid_letinit.cl", "letinit_out_of_scope.cl", "letbadinit.cl", "letnoinit.cl", "valid_assignments.cl",
+        "invalid_assignment.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;

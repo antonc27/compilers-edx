@@ -575,7 +575,8 @@ class attr extends Feature {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        init.type_check(classTable, objects, methods, currentClass);
+        return type_decl;
     }
 }
 
@@ -714,7 +715,15 @@ class assign extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol declaredType = (AbstractSymbol) objects.lookup(name);
+        AbstractSymbol assignedType = expr.type_check(classTable, objects, methods, currentClass);
+        if (!classTable.isSubtype(assignedType, declaredType)) {
+            classTable.semantError(currentClass).println("Type " + assignedType + " of assigned expression does not conform to declared type " + declaredType + " of identifier " + name + ".");
+            set_type(TreeConstants.Object_);
+            return TreeConstants.Object_;
+        }
+        set_type(declaredType);
+        return declaredType;
     }
 }
 
@@ -1757,6 +1766,7 @@ class new_ extends Expression {
             classTable.semantError(currentClass).println("'new' used with undefined class " + type_name + ".");
             return TreeConstants.Object_;
         }
+        set_type(type_name);
         return type_name;
     }
 

@@ -210,10 +210,23 @@ class ClassTable {
 
         for (Enumeration ce = classes.getElements(); ce.hasMoreElements(); ) {
             class_c c = (class_c) ce.nextElement();
+
+            objects.enterScope();
+
+            for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
+                Feature f = (Feature) fe.nextElement();
+                if (f instanceof attr) {
+                    attr a = (attr) f;
+                    objects.addId(a.name, a.type_decl);
+                }
+            }
+
             for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
                 Feature f = (Feature) fe.nextElement();
                 f.type_check(this, objects, methods, c);
             }
+
+            objects.exitScope();
         }
     }
 
