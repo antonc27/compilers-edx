@@ -318,6 +318,21 @@ class ClassTable {
                         signature.add(flc.type_decl);
                     }
                     signature.add(m.return_type);
+                    if (currentMethods.containsKey(m.name)) {
+                        List<AbstractSymbol> prevSignature = currentMethods.get(m.name);
+                        if (prevSignature.size() != signature.size()) {
+                            semantError(current).println("Incompatible number of formal parameters in redefined method " + m.name + ".");
+                            break;
+                        }
+                        for (int i = 0; i < signature.size(); i++) {
+                            AbstractSymbol prevType = prevSignature.get(i);
+                            AbstractSymbol currType = signature.get(i);
+                            if (prevType != currType) {
+                                semantError(current).println("In redefined method " + m.name + ", parameter type " + currType + " is different from original type " + prevType);
+                                break;
+                            }
+                        }
+                    }
                     currentMethods.put(m.name, signature);
                 }
             }

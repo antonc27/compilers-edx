@@ -1,0 +1,2 @@
+tests/invalid_overriding_method.cl:1: In redefined method inky, parameter type C is different from original type B
+Compilation halted due to static semantic errors.

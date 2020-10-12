@@ -1461,7 +1461,14 @@ class neg extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type = e1.type_check(classTable, objects, methods, currentClass);
+        if (type != TreeConstants.Int) {
+            classTable.semantError(currentClass).println("Argument of '~' has type " + type + " instead of Int.");
+            set_type(TreeConstants.Object_);
+            return TreeConstants.Object_;
+        }
+        set_type(TreeConstants.Int);
+        return TreeConstants.Int;
     }
 
 }
