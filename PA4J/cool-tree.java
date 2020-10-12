@@ -515,7 +515,23 @@ class method extends Feature {
             // (better handle order of errors ?)
             hasBadReturnType = true;
         }
+
+        objects.enterScope();
+        for (Enumeration e = formals.getElements(); e.hasMoreElements(); ) {
+            formalc flc = (formalc) e.nextElement();
+            if (flc.name == TreeConstants.self) {
+                classTable.semantError(currentClass).println("'self' cannot be the name of a formal parameter.");
+                return TreeConstants.Object_;
+            } else if (flc.type_decl == TreeConstants.SELF_TYPE) {
+                classTable.semantError(currentClass).println("Formal parameter " + flc.name + " cannot have type SELF_TYPE.");
+                return TreeConstants.Object_;
+            } else {
+                objects.addId(flc.name, flc.type_decl);
+            }
+        }
         AbstractSymbol actualType = expr.type_check(classTable, objects, methods, currentClass);
+        objects.exitScope();
+
         if (hasBadReturnType) {
             return TreeConstants.Object_;
         }

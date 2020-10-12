@@ -1,0 +1,2 @@
+tests/self_type_parameter_position.cl:1: Formal parameter x cannot have type SELF_TYPE.
+Compilation halted due to static semantic errors.

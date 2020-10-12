@@ -1,0 +1,2 @@
+tests/self_informal_parameter.cl:1: 'self' cannot be the name of a formal parameter.
+Compilation halted due to static semantic errors.

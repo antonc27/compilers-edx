@@ -217,9 +217,14 @@ class ClassTable {
                 Feature f = (Feature) fe.nextElement();
                 if (f instanceof attr) {
                     attr a = (attr) f;
-                    objects.addId(a.name, a.type_decl);
+                    if (a.name == TreeConstants.self) {
+                        semantError(c).println("'self' cannot be the name of an attribute.");
+                    } else {
+                        objects.addId(a.name, a.type_decl);
+                    }
                 }
             }
+            objects.addId(TreeConstants.self, TreeConstants.SELF_TYPE);
 
             for (Enumeration fe = c.features.getElements(); fe.hasMoreElements(); ) {
                 Feature f = (Feature) fe.nextElement();

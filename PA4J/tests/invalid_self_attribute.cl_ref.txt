@@ -1,0 +1,2 @@
+tests/invalid_self_attribute.cl:1: 'self' cannot be the name of an attribute.
+Compilation halted due to static semantic errors.
