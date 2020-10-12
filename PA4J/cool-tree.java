@@ -869,6 +869,9 @@ class static_dispatch extends Expression {
         }
 
         AbstractSymbol returnType = signature.get(signature.size() - 1);
+        if (returnType == TreeConstants.SELF_TYPE) {
+            returnType = methodDeclaration;
+        }
         set_type(returnType);
         return returnType;
     }
@@ -927,7 +930,8 @@ class dispatch extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        AbstractSymbol methodDeclaration = expr.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol origMethodDeclaration = expr.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol methodDeclaration = origMethodDeclaration;
         if (methodDeclaration == TreeConstants.SELF_TYPE) {
             methodDeclaration = currentClass.getName();
         }
@@ -963,6 +967,9 @@ class dispatch extends Expression {
         }
 
         AbstractSymbol returnType = signature.get(signature.size() - 1);
+        if (returnType == TreeConstants.SELF_TYPE) {
+            returnType = origMethodDeclaration;
+        }
         set_type(returnType);
         return returnType;
     }
