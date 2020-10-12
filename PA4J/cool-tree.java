@@ -268,6 +268,7 @@ abstract class Case extends TreeNode {
 
     public abstract void dump_with_types(PrintStream out, int n);
 
+    public abstract AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass);
 }
 
 
@@ -307,6 +308,20 @@ class Cases extends ListNode {
 
     public TreeNode copy() {
         return new Cases(lineNumber, copyElements());
+    }
+
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
+        AbstractSymbol lub = null;
+        for (Enumeration e = getElements(); e.hasMoreElements(); ) {
+            Case c = (Case) e.nextElement();
+            AbstractSymbol current = c.type_check(classTable, objects, methods, currentClass);
+            if (lub == null) {
+                lub = current;
+                continue;
+            }
+            lub = classTable.lub(lub, current);
+        }
+        return  lub;
     }
 }
 
@@ -689,6 +704,13 @@ class branch extends Case {
         expr.dump_with_types(out, n + 2);
     }
 
+    public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
+        objects.enterScope();
+        objects.addId(name, type_decl);
+        AbstractSymbol branchType = expr.type_check(classTable, objects, methods, currentClass);
+        objects.exitScope();
+        return branchType;
+    }
 }
 
 
@@ -1108,7 +1130,10 @@ class typcase extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        expr.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol type = cases.type_check(classTable, objects, methods, currentClass);
+        set_type(type);
+        return type;
     }
 
 }

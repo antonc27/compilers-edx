@@ -20,7 +20,7 @@ class SemantTest {
         "self_informal_parameter.cl", "self_type_parameter_position.cl", "valid_dispatch.cl", "invalid_dispatch.cl",
         "valid_static_dispatch.cl", "invalid_static_dispatch.cl", "signature_change.cl", "invalid_overriding_method.cl",
         "valid_negate.cl", "invalid_negate.cl", "invalid_bad_args.cl", "valid_if.cl", "valid_isvoid.cl",
-        "bad_while_body.cl", "bad_while_cond.cl", "valid_comparisons.cl"
+        "bad_while_body.cl", "bad_while_cond.cl", "valid_comparisons.cl", "simple_case.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
