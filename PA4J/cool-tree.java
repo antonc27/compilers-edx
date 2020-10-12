@@ -6,11 +6,8 @@
 //
 //////////////////////////////////////////////////////////
 
-import java.util.Enumeration;
+import java.util.*;
 import java.io.PrintStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 
 /**
@@ -1604,7 +1601,18 @@ class eq extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        Set<AbstractSymbol> comparable = new HashSet<AbstractSymbol>(Arrays.asList(
+                TreeConstants.Int, TreeConstants.Bool, TreeConstants.Str
+        ));
+        if (comparable.contains(type1) || comparable.contains(type2)) {
+            if (type1 != type2) {
+                classTable.semantError(currentClass).println("Incomparable types: " + type1 + " and " +  type2);
+            }
+        }
+        set_type(TreeConstants.Bool);
+        return TreeConstants.Bool;
     }
 
 }
