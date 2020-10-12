@@ -523,9 +523,11 @@ class method extends Feature {
             formalc flc = (formalc) e.nextElement();
             if (flc.name == TreeConstants.self) {
                 classTable.semantError(currentClass).println("'self' cannot be the name of a formal parameter.");
+                objects.exitScope();
                 return TreeConstants.Object_;
             } else if (flc.type_decl == TreeConstants.SELF_TYPE) {
                 classTable.semantError(currentClass).println("Formal parameter " + flc.name + " cannot have type SELF_TYPE.");
+                objects.exitScope();
                 return TreeConstants.Object_;
             } else {
                 objects.addId(flc.name, flc.type_decl);
@@ -806,11 +808,6 @@ class static_dispatch extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        for (Enumeration args = actual.getElements(); args.hasMoreElements(); ) {
-            Expression arg = (Expression) args.nextElement();
-            arg.type_check(classTable, objects, methods, currentClass);
-        }
-
         AbstractSymbol origMethodDeclaration = expr.type_check(classTable, objects, methods, currentClass);
         AbstractSymbol methodDeclaration = origMethodDeclaration;
         if (methodDeclaration == TreeConstants.SELF_TYPE) {
@@ -829,6 +826,29 @@ class static_dispatch extends Expression {
             return TreeConstants.Object_;
         }
         List<AbstractSymbol> signature = classMethods.get(name);
+
+        int idx = 0;
+        for (Enumeration args = actual.getElements(); args.hasMoreElements(); ) {
+            Expression arg = (Expression) args.nextElement();
+            AbstractSymbol origActualType = arg.type_check(classTable, objects, methods, currentClass);
+            AbstractSymbol actualType = origActualType;
+            if (actualType == TreeConstants.SELF_TYPE) {
+                actualType = type_name;
+            }
+            AbstractSymbol origDeclType = signature.get(idx);
+            AbstractSymbol declType = origDeclType;
+            if (declType == TreeConstants.SELF_TYPE) {
+                declType = type_name;
+            }
+
+            if (!classTable.isSubtype(actualType, declType)) {
+                classTable.semantError(currentClass).println("In call of method " + name + ", type " + origActualType + " of parameter b does not conform to declared type " + origDeclType + ".");
+                set_type(TreeConstants.Object_);
+                return TreeConstants.Object_;
+            }
+            idx++;
+        }
+
         AbstractSymbol returnType = signature.get(signature.size() - 1);
         set_type(returnType);
         return returnType;
@@ -888,11 +908,6 @@ class dispatch extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        for (Enumeration args = actual.getElements(); args.hasMoreElements(); ) {
-            Expression arg = (Expression) args.nextElement();
-            arg.type_check(classTable, objects, methods, currentClass);
-        }
-
         AbstractSymbol methodDeclaration = expr.type_check(classTable, objects, methods, currentClass);
         if (methodDeclaration == TreeConstants.SELF_TYPE) {
             methodDeclaration = currentClass.getName();
@@ -905,6 +920,29 @@ class dispatch extends Expression {
             return TreeConstants.Object_;
         }
         List<AbstractSymbol> signature = classMethods.get(name);
+
+        int idx = 0;
+        for (Enumeration args = actual.getElements(); args.hasMoreElements(); ) {
+            Expression arg = (Expression) args.nextElement();
+            AbstractSymbol origActualType = arg.type_check(classTable, objects, methods, currentClass);
+            AbstractSymbol actualType = origActualType;
+            if (actualType == TreeConstants.SELF_TYPE) {
+                actualType = currentClass.getName();
+            }
+            AbstractSymbol origDeclType = signature.get(idx);
+            AbstractSymbol declType = origDeclType;
+            if (declType == TreeConstants.SELF_TYPE) {
+                declType = currentClass.getName();
+            }
+
+            if (!classTable.isSubtype(actualType, declType)) {
+                classTable.semantError(currentClass).println("In call of method " + name + ", type " + origActualType + " of parameter b does not conform to declared type " + origDeclType + ".");
+                set_type(TreeConstants.Object_);
+                return TreeConstants.Object_;
+            }
+            idx++;
+        }
+
         AbstractSymbol returnType = signature.get(signature.size() - 1);
         set_type(returnType);
         return returnType;

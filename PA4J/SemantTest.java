@@ -19,7 +19,7 @@ class SemantTest {
         "invalid_assignment.cl", "if_lub_test.cl", "valid_expression_block.cl", "invalid_self_attribute.cl",
         "self_informal_parameter.cl", "self_type_parameter_position.cl", "valid_dispatch.cl", "invalid_dispatch.cl",
         "valid_static_dispatch.cl", "invalid_static_dispatch.cl", "signature_change.cl", "invalid_overriding_method.cl",
-        "valid_negate.cl", "invalid_negate.cl"
+        "valid_negate.cl", "invalid_negate.cl", "invalid_bad_args.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
