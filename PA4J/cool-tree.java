@@ -1026,7 +1026,13 @@ class cond extends Expression {
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         pred.type_check(classTable, objects, methods, currentClass);
         AbstractSymbol thenType = then_exp.type_check(classTable, objects, methods, currentClass);
+        if (thenType == TreeConstants.SELF_TYPE) {
+            thenType = currentClass.getName();
+        }
         AbstractSymbol elseType = else_exp.type_check(classTable, objects, methods, currentClass);
+        if (elseType == TreeConstants.SELF_TYPE) {
+            elseType = currentClass.getName();
+        }
         AbstractSymbol lubType = classTable.lub(thenType, elseType);
         set_type(lubType);
         return lubType;
