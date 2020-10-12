@@ -523,7 +523,7 @@ class method extends Feature {
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
         boolean hasBadReturnType = false;
-        if (!classTable.typeExists(return_type)) {
+        if (return_type != TreeConstants.SELF_TYPE && !classTable.typeExists(return_type)) {
             classTable.semantError(currentClass).println("Undefined return type " + return_type + " in method " + name + ".");
             // do not return immediately, wait for type check of expr
             // (better handle order of errors ?)
@@ -554,7 +554,11 @@ class method extends Feature {
         if (actualType == TreeConstants.SELF_TYPE) {
             actualType = currentClass.getName();
         }
-        if (!classTable.isSubtype(actualType, return_type)) {
+        AbstractSymbol parentType = return_type;
+        if (parentType == TreeConstants.SELF_TYPE) {
+            parentType = currentClass.getName();
+        }
+        if (!classTable.isSubtype(actualType, parentType)) {
             classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + return_type + ".");
             return TreeConstants.Object_;
         }
