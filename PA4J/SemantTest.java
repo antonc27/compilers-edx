@@ -17,7 +17,7 @@ class SemantTest {
         "invalid_arithmetic.cl", "method_return_subtype.cl", "simple_arithmetic.cl", "return_type_not_exist.cl",
         "valid_letinit.cl", "letinit_out_of_scope.cl", "letbadinit.cl", "letnoinit.cl", "valid_assignments.cl",
         "invalid_assignment.cl", "if_lub_test.cl", "valid_expression_block.cl", "invalid_self_attribute.cl",
-        "self_informal_parameter.cl", "self_type_parameter_position.cl"
+        "self_informal_parameter.cl", "self_type_parameter_position.cl", "valid_dispatch.cl", "invalid_dispatch.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;

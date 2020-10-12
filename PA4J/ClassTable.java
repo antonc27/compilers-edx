@@ -13,8 +13,11 @@ class ClassTable {
     private Classes classes;
 
     private SymbolTable basicClasses;
+    private List<class_c> basicClassesList;
 
     private SymbolTable classDeclarations;
+
+    private Map<class_c, List<class_c>> inheritanceTree;
 
     /**
      * Creates data structures representing basic Cool classes (Object,
@@ -177,14 +180,14 @@ class ClassTable {
 	/* Do somethind with Object_class, IO_class, Int_class,
            Bool_class, and Str_class here */
 
+        basicClassesList = Arrays.asList(Object_class, IO_class, Int_class, Bool_class, Str_class);
+
         basicClasses = new SymbolTable();
         basicClasses.enterScope();
 
-        basicClasses.addId(Object_class.getName(), Object_class);
-        basicClasses.addId(IO_class.getName(), IO_class);
-        basicClasses.addId(Int_class.getName(), Int_class);
-        basicClasses.addId(Bool_class.getName(), Bool_class);
-        basicClasses.addId(Str_class.getName(), Str_class);
+        for (class_c basicCls : basicClassesList) {
+            basicClasses.addId(basicCls.getName(), basicCls);
+        }
     }
 
 
@@ -199,14 +202,15 @@ class ClassTable {
         classDeclarations = buildAndCheckClassDeclarations();
         checkParentDeclarations();
 
-        checkInheritanceTree(buildInheritanceTree());
+        inheritanceTree = buildInheritanceTree();
+        checkInheritanceTree();
     }
 
     public void doTypeCheck() {
         SymbolTable objects = new SymbolTable();
         objects.enterScope();
 
-        SymbolTable methods = new SymbolTable();
+        SymbolTable methods = buildMethods();
 
         for (Enumeration ce = classes.getElements(); ce.hasMoreElements(); ) {
             class_c c = (class_c) ce.nextElement();
@@ -289,6 +293,43 @@ class ClassTable {
         return lub;
     }
 
+    private SymbolTable buildMethods() {
+        SymbolTable methods = new SymbolTable();
+        methods.enterScope();
+        Queue<class_c> order = new LinkedList<class_c>();
+        class_c root = getClassDeclaration(TreeConstants.Object_);
+        assert root != null;
+        assert inheritanceTree.containsKey(root);
+        order.add(root);
+        while (!order.isEmpty()) {
+            class_c current = order.poll();
+            Map<AbstractSymbol, List<AbstractSymbol>> inheritedMethods = (Map) methods.lookup(current.getParent());
+            if (inheritedMethods == null) inheritedMethods = new HashMap<AbstractSymbol, List<AbstractSymbol>>();
+            Map<AbstractSymbol, List<AbstractSymbol>> currentMethods
+                    = new HashMap<AbstractSymbol, List<AbstractSymbol>>(inheritedMethods);
+
+            for (Enumeration fe = current.features.getElements(); fe.hasMoreElements(); ) {
+                Feature f = (Feature) fe.nextElement();
+                if (f instanceof method) {
+                    method m = (method) f;
+                    List<AbstractSymbol> signature = new LinkedList<AbstractSymbol>();
+                    for (Enumeration formals = m.formals.getElements(); formals.hasMoreElements(); ) {
+                        formalc flc = (formalc) formals.nextElement();
+                        signature.add(flc.type_decl);
+                    }
+                    signature.add(m.return_type);
+                    currentMethods.put(m.name, signature);
+                }
+            }
+
+            methods.addId(current.getName(), currentMethods);
+            if (inheritanceTree.containsKey(current)) {
+                order.addAll(inheritanceTree.get(current));
+            }
+        }
+        return methods;
+    }
+
     private class_c getClassDeclaration(AbstractSymbol className) {
         class_c classDeclaration = (class_c) basicClasses.probe(className);
         if (classDeclaration == null) {
@@ -334,26 +375,33 @@ class ClassTable {
 
     private Map<class_c, List<class_c>> buildInheritanceTree() {
         Map<class_c, List<class_c>> res = new HashMap<class_c, List<class_c>>();
+        for (class_c basicCls : basicClassesList) {
+            addInheritance(res, basicCls);
+        }
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             class_c c = (class_c) e.nextElement();
-            class_c parent = (class_c) classDeclarations.probe(c.getParent());
-            if (parent == null) {
-                parent = (class_c) basicClasses.probe(c.getParent());
-            }
-            if (!res.containsKey(parent)) {
-                res.put(parent, new LinkedList<class_c>());
-            }
-            res.get(parent).add(c);
+            addInheritance(res, c);
         }
         return res;
     }
 
-    private void checkInheritanceTree(Map<class_c, List<class_c>> tree) {
+    private void addInheritance(Map<class_c, List<class_c>> res, class_c c) {
+        class_c parent = (class_c) classDeclarations.probe(c.getParent());
+        if (parent == null) {
+            parent = (class_c) basicClasses.probe(c.getParent());
+        }
+        if (!res.containsKey(parent)) {
+            res.put(parent, new LinkedList<class_c>());
+        }
+        res.get(parent).add(c);
+    }
+
+    private void checkInheritanceTree() {
         Set<class_c> erronous = new HashSet<class_c>();
-        for (class_c cls : tree.keySet()) {
+        for (class_c cls : inheritanceTree.keySet()) {
             Set<class_c> seen = new HashSet<class_c>();
             seen.add(cls);
-            checkCycle(tree, cls, seen, erronous);
+            checkCycle(inheritanceTree, cls, seen, erronous);
         }
 
         List<class_c> reversed = new LinkedList<class_c>();

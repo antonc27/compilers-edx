@@ -8,6 +8,8 @@
 
 import java.util.Enumeration;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 
@@ -535,6 +537,9 @@ class method extends Feature {
         if (hasBadReturnType) {
             return TreeConstants.Object_;
         }
+        if (actualType == TreeConstants.SELF_TYPE) {
+            actualType = currentClass.getName();
+        }
         if (!classTable.isSubtype(actualType, return_type)) {
             classTable.semantError(currentClass).println("Inferred return type " + actualType + " of method " + name + " does not conform to declared return type " + return_type + ".");
             return TreeConstants.Object_;
@@ -858,7 +863,26 @@ class dispatch extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        for (Enumeration args = actual.getElements(); args.hasMoreElements(); ) {
+            Expression arg = (Expression) args.nextElement();
+            arg.type_check(classTable, objects, methods, currentClass);
+        }
+
+        AbstractSymbol methodDeclaration = expr.type_check(classTable, objects, methods, currentClass);
+        if (methodDeclaration == TreeConstants.SELF_TYPE) {
+            methodDeclaration = currentClass.getName();
+        }
+
+        Map<AbstractSymbol, List<AbstractSymbol>> classMethods = (Map) methods.lookup(methodDeclaration);
+        if (!classMethods.containsKey(name)) {
+            classTable.semantError(currentClass).println("Dispatch to undefined method " + name + ".");
+            set_type(TreeConstants.Object_);
+            return TreeConstants.Object_;
+        }
+        List<AbstractSymbol> signature = classMethods.get(name);
+        AbstractSymbol returnType = signature.get(signature.size() - 1);
+        set_type(returnType);
+        return returnType;
     }
 }
 
