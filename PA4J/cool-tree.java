@@ -1049,6 +1049,13 @@ class loop extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
+        AbstractSymbol predType = pred.type_check(classTable, objects, methods, currentClass);
+        if (predType != TreeConstants.Bool) {
+            classTable.semantError(currentClass).println("Loop condition does not have type Bool.");
+            set_type(TreeConstants.Object_);
+            return TreeConstants.Object_;
+        }
+        body.type_check(classTable, objects, methods, currentClass);
         set_type(TreeConstants.Object_);
         return TreeConstants.Object_;
     }

@@ -1,0 +1,2 @@
+tests/bad_while_cond.cl:1: Loop condition does not have type Bool.
+Compilation halted due to static semantic errors.
