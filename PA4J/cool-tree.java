@@ -1559,7 +1559,16 @@ class lt extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        if (type1 != TreeConstants.Int) {
+            classTable.semantError(currentClass).println("Left operand of '<' has type " + type1 + " instead of Int.");
+        }
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        if (type2 != TreeConstants.Int) {
+            classTable.semantError(currentClass).println("Right operand of '<' has type " + type2 + " instead of Int.");
+        }
+        set_type(TreeConstants.Bool);
+        return TreeConstants.Bool;
     }
 
 }
@@ -1668,7 +1677,16 @@ class leq extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type1 = e1.type_check(classTable, objects, methods, currentClass);
+        if (type1 != TreeConstants.Int) {
+            classTable.semantError(currentClass).println("Left operand of '<=' has type " + type1 + " instead of Int.");
+        }
+        AbstractSymbol type2 = e2.type_check(classTable, objects, methods, currentClass);
+        if (type2 != TreeConstants.Int) {
+            classTable.semantError(currentClass).println("Right operand of '<=' has type " + type2 + " instead of Int.");
+        }
+        set_type(TreeConstants.Bool);
+        return TreeConstants.Bool;
     }
 
 }
@@ -1712,7 +1730,14 @@ class comp extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        AbstractSymbol type = e1.type_check(classTable, objects, methods, currentClass);
+        if (type != TreeConstants.Bool) {
+            classTable.semantError(currentClass).println("'Not' applied to non-Bool type: " + type);
+            set_type(TreeConstants.Object_);
+            return TreeConstants.Object_;
+        }
+        set_type(TreeConstants.Bool);
+        return TreeConstants.Bool;
     }
 
 }
