@@ -1935,7 +1935,9 @@ class isvoid extends Expression {
 
     @Override
     public AbstractSymbol type_check(ClassTable classTable, SymbolTable objects, SymbolTable methods, class_c currentClass) {
-        return null;
+        e1.type_check(classTable, objects, methods, currentClass);
+        set_type(TreeConstants.Bool);
+        return TreeConstants.Bool;
     }
 
 }
