@@ -1,0 +1,2 @@
+#!/bin/sh
+java -classpath /usr/local/class/cs143/cool/lib:.:`dirname $0` Semant $*
