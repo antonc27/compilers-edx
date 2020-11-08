@@ -528,8 +528,18 @@ class CgenClassTable extends SymbolTable {
 
         //                 Add your code to emit
         //                   - object initializer
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+
+            CgenSupport.emitInitRef(cn.name, str);
+            str.println(":");
+            CgenSupport.emitJal(CgenSupport.RA, str);
+        }
         //                   - the class methods
         //                   - etc...
+
+        str.println("Main.main:");
+        CgenSupport.emitJal(CgenSupport.RA, str);
     }
 
     /**
