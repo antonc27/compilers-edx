@@ -1,12 +1,9 @@
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +14,11 @@ class CgenTest {
         String programPath = "tests/" + programFilename;
 
         runCodeGen(programPath);
-        checkAgainstRef(programPath);
+
+        runSpim(programPath + "_ref.s", programPath + "_ref.out");
+        runSpim(programPath + "_test.s", programPath + "_test.out");
+
+        checkOutput(programPath + "_ref.out", programPath + "_test.out");
     }
 
     private void runCodeGen(String programFilename) {
@@ -44,113 +45,37 @@ class CgenTest {
         }
     }
 
-    private int i = -1;
-    private int j = -1;
+    private void runSpim(String programFilename, String outputFilename) {
+        String cmd = "/usr/local/bin/spim -exception_file /usr/local/class/cs143/cool/lib/trap.handler -file " + programFilename;
 
-    private Map<String, String> refStringConsts = new HashMap<>();
-    private Map<String, String> testStringConsts = new HashMap<>();
+        ProcessBuilder processBuilder = new ProcessBuilder().inheritIO();
+        processBuilder.redirectOutput(new File(outputFilename));
+        processBuilder.command("/bin/sh", "-c", cmd);
 
-    private void checkAgainstRef(String programFilename) {
         try {
-            List<String> file1 = Files.readAllLines(Paths.get(programFilename + "_ref.s"));
-            List<String> file2 = Files.readAllLines(Paths.get(programFilename + "_test.s"));
+            Process process = processBuilder.start();
 
-            for (i = 0, j = 0; i < file1.size(); i++) {
-                String refString = file1.get(i).trim();
-                if (refString.startsWith("#")) {
-                    // skip comments in ref
-                    continue;
-                }
-                String testString = file2.get(j).trim();
-                while (testString.startsWith("#")) {
-                    // skip comments in test
-                    j++;
-                    testString = file2.get(j).trim();
-                }
-
-                // Ref version do not contain strings for No_class, SELF_TYPE and prim_slot
-                // For a moment, skip entire string constant section from comparison
-                if (refString.startsWith("str_const")) {
-                    skipSectionWithPrefix(file1, file2, "str_const");
-                    refString = file1.get(i).trim();
-                    testString = file2.get(j).trim();
-                }
-                // skip int constant section too
-                if (refString.startsWith("int_const")) {
-                    skipSectionWithPrefix(file1, file2, "int_const");
-                    refString = file1.get(i).trim();
-                    testString = file2.get(j).trim();
-                }
-
-                if (refString.startsWith(".word\tstr_const")) {
-                    assertTrue(testString.startsWith(".word\tstr_const"));
-                    String refStrConst = lastToken(refString);
-                    String testStrConst = lastToken(testString);
-
-                    assertEquals(
-                            refStringConsts.get(refStrConst),
-                            testStringConsts.get(testStrConst),
-                            "Failed at line " + (i+1) + " in ref and line " + (j+1) + " in test");
-                    j++;
-                    continue;
-                }
-
-                assertEquals(
-                        refString.replaceAll("[\t ]+", " "),
-                        testString.replaceAll("[\t ]+", " "),
-                        "Failed at line " + (i+1) + " in ref and line " + (j+1) + " in test");
-                j++;
-            }
-        } catch (IOException e) {
+            process.waitFor();
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             fail();
         }
     }
 
-    private void skipSectionWithPrefix(List<String> file1, List<String> file2, String prefix) {
-        String refString = file1.get(i).trim();
-        String testString = file2.get(j).trim();
+    private void checkOutput(String refFilename, String testFilename) {
+        try {
+            List<String> file1 = Files.readAllLines(Paths.get(refFilename));
+            assertTrue(file1.size() > 0, "Ref program should be executed");
+            List<String> file2 = Files.readAllLines(Paths.get(testFilename));
 
-        // at least, check we're having string constant section in test
-        assertTrue(testString.startsWith(prefix));
-
-        String refStrConst = "";
-        if (prefix.equals("str_const")) {
-            refStrConst = refString.substring(0, refString.length() - 1);
-            //refStringConsts.put(refStrConst, "");
-        }
-        while (refString.startsWith(prefix)) {
-            i++;
-            refString = file1.get(i).trim();
-            while (refString.startsWith(".")) {
-                if (prefix.equals("str_const") && refString.startsWith(".ascii")) {
-                    refStringConsts.put(refStrConst, lastToken(refString));
-                }
-                i++;
-                refString = file1.get(i).trim();
+            for (int i = 0; i < file1.size(); i++) {
+                String refString = file1.get(i);
+                String testString = file2.get(i);
+                assertEquals(refString, testString, "Failed at line " + (i+1));
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
         }
-
-        String testStrConst = "";
-        if (prefix.equals("str_const")) {
-            testStrConst = testString.substring(0, refString.length() - 1);
-            //testStringConsts.put(testStrConst, "");
-        }
-        while (testString.startsWith(prefix)) {
-            j++;
-            testString = file2.get(j).trim();
-            while (testString.startsWith(".")) {
-                if (prefix.equals("str_const") && testString.startsWith(".ascii")) {
-                    testStringConsts.put(testStrConst, lastToken(testString));
-                }
-                j++;
-                testString = file2.get(j).trim();
-            }
-        }
-    }
-
-    private String lastToken(String str) {
-        String[] s = str.replaceAll("[\t ]+", " ").split(" ");
-        return s[s.length - 1];
     }
 }
