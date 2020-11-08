@@ -53,7 +53,7 @@ class IntSymbol extends AbstractSymbol {
                 CgenSupport.INT_SLOTS)); // size
         s.print(CgenSupport.WORD);
 
-        CgenSupport.emitDispTableRef(this, s);        // dispatch table
+        s.println("Int_dispTab");        // dispatch table
         s.println(CgenSupport.WORD + str); // integer value
     }
 
