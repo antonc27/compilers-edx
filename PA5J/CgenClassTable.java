@@ -22,6 +22,8 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 // This is a project skeleton file
 
 import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -161,6 +163,63 @@ class CgenClassTable extends SymbolTable {
         AbstractTable.stringtable.codeStringTable(stringclasstag, str);
         AbstractTable.inttable.codeStringTable(intclasstag, str);
         codeBools(boolclasstag);
+    }
+
+
+    private void codeClassNameTab() {
+        str.println(CgenSupport.CLASSNAMETAB + ":");
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            str.print(CgenSupport.WORD);
+
+            CgenNode cn = (CgenNode) e.nextElement();
+            StringSymbol ss = (StringSymbol)AbstractTable.stringtable.lookup(cn.name.str);
+            ss.codeRef(str);
+            str.println("");
+        }
+    }
+
+
+    private void codeClassObjTab() {
+        str.println(CgenSupport.CLASSOBJTAB + ":");
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+            str.print(CgenSupport.WORD);
+            CgenSupport.emitProtObjRef(cn.name, str);
+            str.println("");
+            str.print(CgenSupport.WORD);
+            CgenSupport.emitInitRef(cn.name, str);
+            str.println("");
+        }
+    }
+
+
+    private void codeDispatchTables() {
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+
+            CgenSupport.emitDispTableRef(cn.name, str);
+            str.println(":");
+
+            List<CgenNode> inheritancePath = new LinkedList<CgenNode>();
+
+            while (cn.name != TreeConstants.No_class) {
+                inheritancePath.add(0, cn);
+                cn = cn.getParentNd();
+            }
+
+            for (CgenNode currentCn : inheritancePath) {
+                for (Enumeration ee = currentCn.features.getElements(); ee.hasMoreElements();) {
+                    Feature f = (Feature)ee.nextElement();
+                    if (f instanceof method) {
+                        method m = (method) f;
+
+                        str.print(CgenSupport.WORD);
+                        CgenSupport.emitMethodRef(currentCn.name, m.name, str);
+                        str.println("");
+                    }
+                }
+            }
+        }
     }
 
 
@@ -394,9 +453,9 @@ class CgenClassTable extends SymbolTable {
 
         this.str = str;
 
-        stringclasstag = 0 /* Change to your String class tag here */;
-        intclasstag = 0 /* Change to your Int class tag here */;
-        boolclasstag = 0 /* Change to your Bool class tag here */;
+        stringclasstag = 4;
+        intclasstag = 2;
+        boolclasstag = 3;
 
         enterScope();
         if (Flags.cgen_debug) System.out.println("Building CgenClassTable");
@@ -425,9 +484,44 @@ class CgenClassTable extends SymbolTable {
         codeConstants();
 
         //                 Add your code to emit
-        //                   - prototype objects
         //                   - class_nameTab
+        codeClassNameTab();
+        codeClassObjTab();
         //                   - dispatch tables
+        codeDispatchTables();
+        //                   - prototype objects
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+
+            str.println(CgenSupport.WORD + "-1");
+            CgenSupport.emitProtObjRef(cn.name, str);
+            str.println(":");
+            str.println(CgenSupport.WORD + nds.indexOf(cn));
+
+            int sizeCount = CgenSupport.DEFAULT_OBJFIELDS;
+            for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements();) {
+                Feature f = (Feature) ee.nextElement();
+                if (f instanceof attr) {
+                    sizeCount++;
+                }
+            }
+            str.println(CgenSupport.WORD + sizeCount);
+
+            str.print(CgenSupport.WORD);
+            CgenSupport.emitDispTableRef(cn.name, str);
+            str.println("");
+
+            if (cn.name == TreeConstants.Str) {
+                IntSymbol emptyLength = (IntSymbol) AbstractTable.inttable.lookup("0");
+                str.print(CgenSupport.WORD);
+                emptyLength.codeRef(str);
+                str.println("");
+
+                str.println(CgenSupport.WORD + 0);
+            } else if (cn.name == TreeConstants.Int || cn.name == TreeConstants.Bool) {
+                str.println(CgenSupport.WORD + 0);
+            }
+        }
 
         if (Flags.cgen_debug) System.out.println("coding global text");
         codeGlobalText();
