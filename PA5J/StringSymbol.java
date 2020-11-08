@@ -54,7 +54,7 @@ class StringSymbol extends AbstractSymbol {
                 (str.length() + 4) / 4)); // object size
         s.print(CgenSupport.WORD);
 
-        CgenSupport.emitDispTableRef(this, s);        // dispatch table
+        s.println("String_dispTab");        // dispatch table
         s.print(CgenSupport.WORD);
         lensym.codeRef(s);
         s.println(""); // length
