@@ -182,6 +182,26 @@ Object_dispTab:
 	.word	Object.abort
 	.word	Object.type_name
 	.word	Object.copy
+Main_dispTab:
+	.word	Object.abort
+	.word	Object.type_name
+	.word	Object.copy
+	.word	Main.main
+String_dispTab:
+	.word	Object.abort
+	.word	Object.type_name
+	.word	Object.copy
+	.word	String.length
+	.word	String.concat
+	.word	String.substr
+Bool_dispTab:
+	.word	Object.abort
+	.word	Object.type_name
+	.word	Object.copy
+Int_dispTab:
+	.word	Object.abort
+	.word	Object.type_name
+	.word	Object.copy
 IO_dispTab:
 	.word	Object.abort
 	.word	Object.type_name
@@ -190,48 +210,16 @@ IO_dispTab:
 	.word	IO.out_int
 	.word	IO.in_string
 	.word	IO.in_int
-Int_dispTab:
-	.word	Object.abort
-	.word	Object.type_name
-	.word	Object.copy
-Bool_dispTab:
-	.word	Object.abort
-	.word	Object.type_name
-	.word	Object.copy
-String_dispTab:
-	.word	Object.abort
-	.word	Object.type_name
-	.word	Object.copy
-	.word	String.length
-	.word	String.concat
-	.word	String.substr
-Main_dispTab:
-	.word	Object.abort
-	.word	Object.type_name
-	.word	Object.copy
-	.word	Main.main
 	.word	-1
 Object_protObj:
 	.word	0
 	.word	3
 	.word	Object_dispTab
 	.word	-1
-IO_protObj:
-	.word	1
+Main_protObj:
+	.word	5
 	.word	3
-	.word	IO_dispTab
-	.word	-1
-Int_protObj:
-	.word	2
-	.word	4
-	.word	Int_dispTab
-	.word	0
-	.word	-1
-Bool_protObj:
-	.word	3
-	.word	4
-	.word	Bool_dispTab
-	.word	0
+	.word	Main_dispTab
 	.word	-1
 String_protObj:
 	.word	4
@@ -240,10 +228,22 @@ String_protObj:
 	.word	int_const0
 	.word	0
 	.word	-1
-Main_protObj:
-	.word	5
+Bool_protObj:
 	.word	3
-	.word	Main_dispTab
+	.word	4
+	.word	Bool_dispTab
+	.word	0
+	.word	-1
+Int_protObj:
+	.word	2
+	.word	4
+	.word	Int_dispTab
+	.word	0
+	.word	-1
+IO_protObj:
+	.word	1
+	.word	3
+	.word	IO_dispTab
 	.globl	heap_start
 heap_start:
 	.word	0
