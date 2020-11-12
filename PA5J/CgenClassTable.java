@@ -45,6 +45,7 @@ class CgenClassTable extends SymbolTable {
     private int intclasstag;
     private int boolclasstag;
 
+    private CgenContext cgenContext = new CgenContext();
 
     // The following methods emit code for constants and global
     // declarations.
@@ -198,12 +199,14 @@ class CgenClassTable extends SymbolTable {
             str.println(":");
 
             List<CgenNode> inheritancePath = new LinkedList<CgenNode>();
-
-            while (cn.name != TreeConstants.No_class) {
-                inheritancePath.add(0, cn);
-                cn = cn.getParentNd();
+            CgenNode tmp = cn;
+            while (tmp.name != TreeConstants.No_class) {
+                inheritancePath.add(0, tmp);
+                tmp = tmp.getParentNd();
             }
 
+            HashMap<AbstractSymbol, Integer> offsets = new HashMap<AbstractSymbol, Integer>();
+            int offset = 0;
             for (CgenNode currentCn : inheritancePath) {
                 for (Enumeration ee = currentCn.features.getElements(); ee.hasMoreElements();) {
                     Feature f = (Feature)ee.nextElement();
@@ -213,9 +216,13 @@ class CgenClassTable extends SymbolTable {
                         str.print(CgenSupport.WORD);
                         CgenSupport.emitMethodRef(currentCn.name, m.name, str);
                         str.println("");
+
+                        offsets.put(m.name, offset);
+                        offset++;
                     }
                 }
             }
+            cgenContext.methodOffsets.put(cn.name, offsets);
         }
     }
 
@@ -262,7 +269,9 @@ class CgenClassTable extends SymbolTable {
 
             CgenSupport.emitInitRef(cn.name, str);
             str.println(":");
-            CgenSupport.emitJal(CgenSupport.RA, str);
+
+            CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, str);
+            CgenSupport.emitReturn(str);
         }
     }
 
@@ -278,8 +287,23 @@ class CgenClassTable extends SymbolTable {
 
                         CgenSupport.emitMethodRef(cn.name, m.name, str);
                         str.println(":");
-                        m.expr.code(str);
-                        CgenSupport.emitJal(CgenSupport.RA, str);
+
+                        CgenSupport.emitMove(CgenSupport.FP, CgenSupport.SP, str);
+                        CgenSupport.emitPush(CgenSupport.RA, str);
+                        CgenSupport.emitPush(CgenSupport.SELF, str);
+
+                        // save self passed to $a0
+                        CgenSupport.emitMove(CgenSupport.SELF, CgenSupport.ACC, str);
+
+                        cgenContext.so = cn;
+                        m.expr.code(str, cgenContext);
+
+                        CgenSupport.emitPop(CgenSupport.SELF, str);
+                        CgenSupport.emitPop(CgenSupport.RA, str);
+                        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, str);
+                        CgenSupport.emitLoad(CgenSupport.FP, 0, CgenSupport.SP, str);
+
+                        CgenSupport.emitReturn(str);
                     }
                 }
             }
@@ -573,6 +597,11 @@ class CgenClassTable extends SymbolTable {
     public CgenNode root() {
         return (CgenNode) probe(TreeConstants.Object_);
     }
+}
+
+class CgenContext {
+    CgenNode so;
+    Map<AbstractSymbol, Map<AbstractSymbol, Integer>> methodOffsets = new HashMap<AbstractSymbol, Map<AbstractSymbol, Integer>>();
 }
 			  
     
