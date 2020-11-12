@@ -1,4 +1,5 @@
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -8,9 +9,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CgenTest {
-    @Test
-    public void testExample() {
-        String programFilename = "example.cl";
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "example.cl", "hello_world.cl"
+    })
+    public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
 
         runCodeGen(programPath);
