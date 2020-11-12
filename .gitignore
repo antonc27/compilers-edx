@@ -27,5 +27,8 @@ out/
 
 grading/
 
+*_ref.out
+
 *_test.txt
 *_test.s
+*_test.out
