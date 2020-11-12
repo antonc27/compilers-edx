@@ -22,10 +22,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 // This is a project skeleton file
 
 import java.io.PrintStream;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Vector;
-import java.util.Enumeration;
+import java.util.*;
 
 /**
  * This class is used for representing the inheritance tree during code
@@ -216,6 +213,73 @@ class CgenClassTable extends SymbolTable {
                         str.print(CgenSupport.WORD);
                         CgenSupport.emitMethodRef(currentCn.name, m.name, str);
                         str.println("");
+                    }
+                }
+            }
+        }
+    }
+
+
+    private void codePrototypeObjects() {
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+
+            str.println(CgenSupport.WORD + "-1");
+            CgenSupport.emitProtObjRef(cn.name, str);
+            str.println(":");
+            str.println(CgenSupport.WORD + nds.indexOf(cn));
+
+            int sizeCount = CgenSupport.DEFAULT_OBJFIELDS;
+            for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements();) {
+                Feature f = (Feature) ee.nextElement();
+                if (f instanceof attr) {
+                    sizeCount++;
+                }
+            }
+            str.println(CgenSupport.WORD + sizeCount);
+
+            str.print(CgenSupport.WORD);
+            CgenSupport.emitDispTableRef(cn.name, str);
+            str.println("");
+
+            if (cn.name == TreeConstants.Str) {
+                IntSymbol emptyLength = (IntSymbol) AbstractTable.inttable.lookup("0");
+                str.print(CgenSupport.WORD);
+                emptyLength.codeRef(str);
+                str.println("");
+
+                str.println(CgenSupport.WORD + 0);
+            } else if (cn.name == TreeConstants.Int || cn.name == TreeConstants.Bool) {
+                str.println(CgenSupport.WORD + 0);
+            }
+        }
+    }
+
+
+    private void codeObjectInitializers() {
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+
+            CgenSupport.emitInitRef(cn.name, str);
+            str.println(":");
+            CgenSupport.emitJal(CgenSupport.RA, str);
+        }
+    }
+
+
+    private void codeClassMethods() {
+        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
+            CgenNode cn = (CgenNode) e.nextElement();
+            if (!cn.basic()) {
+                for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements(); ) {
+                    Feature f = (Feature)ee.nextElement();
+                    if (f instanceof method) {
+                        method m = (method) f;
+
+                        CgenSupport.emitMethodRef(cn.name, m.name, str);
+                        str.println(":");
+                        m.expr.code(str);
+                        CgenSupport.emitJal(CgenSupport.RA, str);
                     }
                 }
             }
@@ -490,56 +554,17 @@ class CgenClassTable extends SymbolTable {
         //                   - dispatch tables
         codeDispatchTables();
         //                   - prototype objects
-        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
-            CgenNode cn = (CgenNode) e.nextElement();
-
-            str.println(CgenSupport.WORD + "-1");
-            CgenSupport.emitProtObjRef(cn.name, str);
-            str.println(":");
-            str.println(CgenSupport.WORD + nds.indexOf(cn));
-
-            int sizeCount = CgenSupport.DEFAULT_OBJFIELDS;
-            for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements();) {
-                Feature f = (Feature) ee.nextElement();
-                if (f instanceof attr) {
-                    sizeCount++;
-                }
-            }
-            str.println(CgenSupport.WORD + sizeCount);
-
-            str.print(CgenSupport.WORD);
-            CgenSupport.emitDispTableRef(cn.name, str);
-            str.println("");
-
-            if (cn.name == TreeConstants.Str) {
-                IntSymbol emptyLength = (IntSymbol) AbstractTable.inttable.lookup("0");
-                str.print(CgenSupport.WORD);
-                emptyLength.codeRef(str);
-                str.println("");
-
-                str.println(CgenSupport.WORD + 0);
-            } else if (cn.name == TreeConstants.Int || cn.name == TreeConstants.Bool) {
-                str.println(CgenSupport.WORD + 0);
-            }
-        }
+        codePrototypeObjects();
 
         if (Flags.cgen_debug) System.out.println("coding global text");
         codeGlobalText();
 
         //                 Add your code to emit
         //                   - object initializer
-        for (Enumeration e = nds.elements(); e.hasMoreElements(); ) {
-            CgenNode cn = (CgenNode) e.nextElement();
-
-            CgenSupport.emitInitRef(cn.name, str);
-            str.println(":");
-            CgenSupport.emitJal(CgenSupport.RA, str);
-        }
+        codeObjectInitializers();
         //                   - the class methods
+        codeClassMethods();
         //                   - etc...
-
-        str.println("Main.main:");
-        CgenSupport.emitJal(CgenSupport.RA, str);
     }
 
     /**
