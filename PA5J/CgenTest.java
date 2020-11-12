@@ -52,6 +52,7 @@ class CgenTest {
         String cmd = "/usr/local/bin/spim -exception_file /usr/local/class/cs143/cool/lib/trap.handler -file " + programFilename;
 
         ProcessBuilder processBuilder = new ProcessBuilder().inheritIO();
+        processBuilder.redirectErrorStream(true);
         processBuilder.redirectOutput(new File(outputFilename));
         processBuilder.command("/bin/sh", "-c", cmd);
 
