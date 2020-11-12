@@ -560,6 +560,11 @@ class CgenSupport {
         emitAddiu(SP, SP, -4, s);
     }
 
+    static void emitPop(String reg, PrintStream s) {
+        CgenSupport.emitLoad(reg, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, s);
+    }
+
     /**
      * Emits code to fetch the integer value of the Integer object.
      *
