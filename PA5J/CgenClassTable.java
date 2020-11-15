@@ -205,7 +205,7 @@ class CgenClassTable extends SymbolTable {
                 tmp = tmp.getParentNd();
             }
 
-            HashMap<AbstractSymbol, Integer> offsets = new HashMap<AbstractSymbol, Integer>();
+            HashMap<AbstractSymbol, CgenContext.MethodInfo> infos = new HashMap<AbstractSymbol, CgenContext.MethodInfo>();
             int offset = 0;
             for (CgenNode currentCn : inheritancePath) {
                 for (Enumeration ee = currentCn.features.getElements(); ee.hasMoreElements();) {
@@ -217,12 +217,13 @@ class CgenClassTable extends SymbolTable {
                         CgenSupport.emitMethodRef(currentCn.name, m.name, str);
                         str.println("");
 
-                        offsets.put(m.name, offset);
+
+                        infos.put(m.name, new CgenContext.MethodInfo(offset, m.formalcs));
                         offset++;
                     }
                 }
             }
-            cgenContext.methodOffsets.put(cn.name, offsets);
+            cgenContext.classMethodInfos.put(cn.name, infos);
         }
     }
 
@@ -288,20 +289,31 @@ class CgenClassTable extends SymbolTable {
                         CgenSupport.emitMethodRef(cn.name, m.name, str);
                         str.println(":");
 
-                        CgenSupport.emitMove(CgenSupport.FP, CgenSupport.SP, str);
+                        CgenSupport.emitPush(CgenSupport.FP, str);
                         CgenSupport.emitPush(CgenSupport.RA, str);
                         CgenSupport.emitPush(CgenSupport.SELF, str);
+
+                        CgenSupport.emitAddiu(CgenSupport.FP, CgenSupport.SP, 3 * CgenSupport.WORD_SIZE, str);
 
                         // save self passed to $a0
                         CgenSupport.emitMove(CgenSupport.SELF, CgenSupport.ACC, str);
 
                         cgenContext.so = cn;
+                        cgenContext.symTab = new SymbolTable();
+                        cgenContext.symTab.enterScope();
+                        int n = m.formalcs.getLength();
+                        for (int i = 0; i < n; i++) {
+                            formalc fc = (formalc) m.formalcs.getNth(i);
+                            cgenContext.symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
+                        }
                         m.expr.code(str, cgenContext);
 
                         CgenSupport.emitPop(CgenSupport.SELF, str);
                         CgenSupport.emitPop(CgenSupport.RA, str);
-                        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, str);
-                        CgenSupport.emitLoad(CgenSupport.FP, 0, CgenSupport.SP, str);
+                        CgenSupport.emitPop(CgenSupport.FP, str);
+                        if (n > 0) {
+                            CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, n * CgenSupport.WORD_SIZE, str);
+                        }
 
                         CgenSupport.emitReturn(str);
                     }
@@ -601,7 +613,36 @@ class CgenClassTable extends SymbolTable {
 
 class CgenContext {
     CgenNode so;
-    Map<AbstractSymbol, Map<AbstractSymbol, Integer>> methodOffsets = new HashMap<AbstractSymbol, Map<AbstractSymbol, Integer>>();
+    Map<AbstractSymbol, Map<AbstractSymbol, MethodInfo>> classMethodInfos = new HashMap<AbstractSymbol, Map<AbstractSymbol, MethodInfo>>();
+
+    static class MethodInfo {
+        int offset;
+        Formals formals;
+
+        MethodInfo(int offset, Formals formals) {
+            this.offset = offset;
+            this.formals = formals;
+        }
+    }
+
+    SymbolTable symTab;
+
+    interface Location {
+        void cgen(PrintStream s);
+    }
+
+    public static class ArgLocation implements Location {
+        int offsetToFp;
+
+        ArgLocation(int offsetToFp) {
+            this.offsetToFp = offsetToFp;
+        }
+
+        @Override
+        public void cgen(PrintStream s) {
+            CgenSupport.emitLoad(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
+        }
+    }
 }
 			  
     
