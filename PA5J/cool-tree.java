@@ -680,15 +680,34 @@ class dispatch extends Expression {
       * */
     public void code(PrintStream s, CgenContext context) {
         //CgenSupport.emitPush(CgenSupport.FP, s);
-        ((Expression)actual.getNth(0)).code(s, context);
-        CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        // CgenContext.MethodInfo methodInfo = context.classMethodInfos.get(context.so.name).get(name);
+
+        context.symTab.enterScope();
+
+        //for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
+        int n = actual.getLength();
+        for (int i = 0; i < n; i++) {
+            Expression e = (Expression) actual.getNth(i);
+            e.code(s, context);
+            CgenSupport.emitPush(CgenSupport.ACC, s);
+
+            // formalc fc = (formalc) methodInfo.formals.getNth(i);
+            // context.symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
+        }
+
+        expr.code(s, context);
+        //CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        // ((Expression)actual.getNth(0)).code(s, context);
+        // CgenSupport.emitPush(CgenSupport.ACC, s);
 
         // restore self before call
-        CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
+        //CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
 
         CgenSupport.emitLoad(CgenSupport.T1,CgenSupport.DISPTABLE_OFFSET, CgenSupport.ACC, s);
-        int offset = context.methodOffsets.get(context.so.name).get(name);
-        CgenSupport.emitLoad(CgenSupport.T1, offset, CgenSupport.T1, s);
+        CgenContext.MethodInfo methodInfo = context.classMethodInfos.get(context.so.name).get(name);
+        CgenSupport.emitLoad(CgenSupport.T1, methodInfo.offset, CgenSupport.T1, s);
         CgenSupport.emitJalr(CgenSupport.T1, s);
     }
 
@@ -1621,6 +1640,11 @@ class object extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        if (name == TreeConstants.self) {
+            CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
+        } else {
+            ((CgenContext.Location) context.symTab.lookup(name)).cgen(s);
+        }
     }
 
 
