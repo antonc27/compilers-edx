@@ -69,7 +69,7 @@ class CgenTest {
     private void checkOutput(String refFilename, String testFilename) {
         try {
             List<String> file1 = Files.readAllLines(Paths.get(refFilename));
-            assertTrue(file1.size() > 0, "Ref program should be executed");
+            assertTrue(file1.size() > 1, "Ref program should be executed");
             List<String> file2 = Files.readAllLines(Paths.get(testFilename));
 
             for (int i = 0; i < file1.size(); i++) {
