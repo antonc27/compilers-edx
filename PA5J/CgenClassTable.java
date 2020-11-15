@@ -218,7 +218,7 @@ class CgenClassTable extends SymbolTable {
                         str.println("");
 
 
-                        infos.put(m.name, new CgenContext.MethodInfo(offset, m.formalcs));
+                        infos.put(m.name, new CgenContext.MethodInfo(offset, m.formals));
                         offset++;
                     }
                 }
@@ -303,9 +303,9 @@ class CgenClassTable extends SymbolTable {
                         cgenContext.so = cn;
                         cgenContext.symTab = new SymbolTable();
                         cgenContext.symTab.enterScope();
-                        int n = m.formalcs.getLength();
+                        int n = m.formals.getLength();
                         for (int i = 0; i < n; i++) {
-                            formalc fc = (formalc) m.formalcs.getNth(i);
+                            formal fc = (formal) m.formals.getNth(i);
                             cgenContext.symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
                         }
                         m.expr.code(str, cgenContext);

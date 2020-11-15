@@ -692,7 +692,7 @@ class dispatch extends Expression {
             e.code(s, context);
             CgenSupport.emitPush(CgenSupport.ACC, s);
 
-            // formalc fc = (formalc) methodInfo.formals.getNth(i);
+            // formal fc = (formal) methodInfo.formals.getNth(i);
             // context.symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
         }
 
