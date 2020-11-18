@@ -358,6 +358,10 @@ class CgenSupport {
         s.println(JAL + dest);
     }
 
+    static void emitObjectCopy(PrintStream s) {
+        emitJal("Object.copy", s);
+    }
+
     /**
      * Emits a RET instruction.
      *
@@ -562,8 +566,8 @@ class CgenSupport {
     }
 
     static void emitPop(String reg, PrintStream s) {
-        CgenSupport.emitLoad(reg, 1, SP, s);
-        CgenSupport.emitAddiu(SP, SP, WORD_SIZE, s);
+        emitLoad(reg, 1, SP, s);
+        emitAddiu(SP, SP, WORD_SIZE, s);
     }
 
     /**
@@ -586,6 +590,24 @@ class CgenSupport {
      */
     static void emitStoreInt(String source, String dest, PrintStream s) {
         emitStore(source, DEFAULT_OBJFIELDS, dest, s);
+    }
+
+    static void emitArithEnter(Expression e1, Expression e2, PrintStream s, CgenContext context) {
+        e1.code(s, context);
+        emitPush(ACC, s);
+
+        e2.code(s, context);
+        emitObjectCopy(s);
+
+        emitLoad(S1, 1, SP, s);
+        emitFetchInt(T1, S1, s);
+
+        emitFetchInt(T2, ACC, s);
+    }
+
+    static void emitArithExit(PrintStream s) {
+        emitStoreInt(T1, ACC, s);
+        emitAddiu(SP, SP, WORD_SIZE, s);
     }
 
     /**
