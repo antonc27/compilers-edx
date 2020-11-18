@@ -760,6 +760,22 @@ class cond extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        pred.code(s, context);
+
+        // fetch int value of a bool
+        CgenSupport.emitFetchInt(CgenSupport.T1, CgenSupport.ACC, s);
+
+        int labelFalse = context.nextLabelIndex();
+        CgenSupport.emitBeqz(CgenSupport.T1, labelFalse, s);
+
+        then_exp.code(s, context);
+        int labelEndIf = context.nextLabelIndex();
+        CgenSupport.emitBranch(labelEndIf, s);
+
+        CgenSupport.emitLabelDef(labelFalse, s);
+        else_exp.code(s, context);
+
+        CgenSupport.emitLabelDef(labelEndIf, s);
     }
 
 
