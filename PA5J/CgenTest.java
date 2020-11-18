@@ -11,7 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class CgenTest {
     @ParameterizedTest
     @ValueSource(strings = {
-            "example.cl", "hello_world.cl", "two_args.cl", "basic_sum.cl", "basic_arith.cl"
+            "example.cl", "hello_world.cl", "two_args.cl", "basic_sum.cl", "basic_arith.cl",
+            "eval-order-arith.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
