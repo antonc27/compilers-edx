@@ -897,9 +897,10 @@ class block extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        for (Enumeration e = body.getElements(); e.hasMoreElements();) {
+            ((Expression)e.nextElement()).code(s, context);
+        }
     }
-
-
 }
 
 
