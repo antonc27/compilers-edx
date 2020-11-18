@@ -614,6 +614,11 @@ class CgenClassTable extends SymbolTable {
 class CgenContext {
     CgenNode so;
     Map<AbstractSymbol, Map<AbstractSymbol, MethodInfo>> classMethodInfos = new HashMap<AbstractSymbol, Map<AbstractSymbol, MethodInfo>>();
+    int labelIndex = 0;
+
+    int nextLabelIndex() {
+        return labelIndex++;
+    }
 
     static class MethodInfo {
         int offset;
