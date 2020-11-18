@@ -1229,6 +1229,18 @@ class lt extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        CgenSupport.emitArithEnter(e1, e2, s, context);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+
+        int labelIdx = context.nextLabelIndex();
+        CgenSupport.emitBlt(CgenSupport.T1, CgenSupport.T2, labelIdx, s);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(false), s);
+
+        CgenSupport.emitLabelDef(labelIdx, s);
+
+        CgenSupport.emitArithExit(s);
     }
 
 
@@ -1275,6 +1287,27 @@ class eq extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        e1.code(s, context);
+        CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        e2.code(s, context);
+
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitMove(CgenSupport.T1, CgenSupport.S1, s);
+
+        CgenSupport.emitMove(CgenSupport.T2, CgenSupport.ACC, s);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+
+        int labelIdx = context.nextLabelIndex();
+        CgenSupport.emitBeq(CgenSupport.T1, CgenSupport.T2, labelIdx, s);
+
+        CgenSupport.emitLoadBool(CgenSupport.A1, new BoolConst(false), s);
+        CgenSupport.emitJal("equality_test", s);
+
+        CgenSupport.emitLabelDef(labelIdx, s);
+
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, s);
     }
 
 
@@ -1321,6 +1354,18 @@ class leq extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        CgenSupport.emitArithEnter(e1, e2, s, context);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+
+        int labelIdx = context.nextLabelIndex();
+        CgenSupport.emitBleq(CgenSupport.T1, CgenSupport.T2, labelIdx, s);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(false), s);
+
+        CgenSupport.emitLabelDef(labelIdx, s);
+
+        CgenSupport.emitArithExit(s);
     }
 
 
