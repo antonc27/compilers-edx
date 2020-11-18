@@ -88,6 +88,7 @@ class CgenSupport {
     final static String ACC = "$a0";        // Accumulator
     final static String A1 = "$a1";        // For arguments to prim funcs
     final static String SELF = "$s0";        // Ptr to self (callee saves)
+    final static String S1 = "$s1";
     final static String T1 = "$t1";        // Temporary 1
     final static String T2 = "$t2";            // Temporary 2
     final static String T3 = "$t3";            // Temporary 3
@@ -557,12 +558,12 @@ class CgenSupport {
      */
     static void emitPush(String reg, PrintStream s) {
         emitStore(reg, 0, SP, s);
-        emitAddiu(SP, SP, -4, s);
+        emitAddiu(SP, SP, -1 * WORD_SIZE, s);
     }
 
     static void emitPop(String reg, PrintStream s) {
-        CgenSupport.emitLoad(reg, 1, CgenSupport.SP, s);
-        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, s);
+        CgenSupport.emitLoad(reg, 1, SP, s);
+        CgenSupport.emitAddiu(SP, SP, WORD_SIZE, s);
     }
 
     /**
