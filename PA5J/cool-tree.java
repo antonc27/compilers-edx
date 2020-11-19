@@ -970,6 +970,20 @@ class let extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        init.code(s, context);
+
+        int offset = context.framePointerOffset;
+        CgenSupport.emitPush(CgenSupport.ACC, s, context);
+
+        context.symTab.enterScope();
+        context.symTab.addId(identifier, new CgenContext.StackLocation(-offset));
+
+        body.code(s, context);
+
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, s);
+        context.framePointerOffset--;
+
+        context.symTab.exitScope();
     }
 
 
