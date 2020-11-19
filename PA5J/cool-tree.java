@@ -685,7 +685,7 @@ class dispatch extends Expression {
         for (int i = 0; i < n; i++) {
             Expression e = (Expression) actual.getNth(i);
             e.code(s, context);
-            CgenSupport.emitPush(CgenSupport.ACC, s);
+            CgenSupport.emitPush(CgenSupport.ACC, s, context);
         }
 
         expr.code(s, context);
@@ -694,6 +694,9 @@ class dispatch extends Expression {
         CgenContext.MethodInfo methodInfo = context.classMethodInfos.get(context.so.name).get(name);
         CgenSupport.emitLoad(CgenSupport.T1, methodInfo.offset, CgenSupport.T1, s);
         CgenSupport.emitJalr(CgenSupport.T1, s);
+
+        // callee will pop args
+        context.framePointerOffset -= n;
     }
 }
 
@@ -1001,7 +1004,7 @@ class plus extends Expression {
     public void code(PrintStream s, CgenContext context) {
         CgenSupport.emitArithEnter(e1, e2, s, context);
         CgenSupport.emitAdd(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
-        CgenSupport.emitArithExit(s);
+        CgenSupport.emitArithExit(s, context);
     }
 }
 
@@ -1048,7 +1051,7 @@ class sub extends Expression {
     public void code(PrintStream s, CgenContext context) {
         CgenSupport.emitArithEnter(e1, e2, s, context);
         CgenSupport.emitSub(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
-        CgenSupport.emitArithExit(s);
+        CgenSupport.emitArithExit(s, context);
     }
 }
 
@@ -1095,7 +1098,7 @@ class mul extends Expression {
     public void code(PrintStream s, CgenContext context) {
         CgenSupport.emitArithEnter(e1, e2, s, context);
         CgenSupport.emitMul(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
-        CgenSupport.emitArithExit(s);
+        CgenSupport.emitArithExit(s, context);
     }
 }
 
@@ -1142,7 +1145,7 @@ class divide extends Expression {
     public void code(PrintStream s, CgenContext context) {
         CgenSupport.emitArithEnter(e1, e2, s, context);
         CgenSupport.emitDiv(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
-        CgenSupport.emitArithExit(s);
+        CgenSupport.emitArithExit(s, context);
     }
 }
 
@@ -1239,7 +1242,7 @@ class lt extends Expression {
 
         CgenSupport.emitLabelDef(labelIdx, s);
 
-        CgenSupport.emitArithExit(s);
+        CgenSupport.emitArithExit(s, context);
     }
 
 
@@ -1287,7 +1290,7 @@ class eq extends Expression {
       * */
     public void code(PrintStream s, CgenContext context) {
         e1.code(s, context);
-        CgenSupport.emitPush(CgenSupport.ACC, s);
+        CgenSupport.emitPush(CgenSupport.ACC, s, context);
 
         e2.code(s, context);
 
@@ -1307,6 +1310,7 @@ class eq extends Expression {
         CgenSupport.emitLabelDef(labelIdx, s);
 
         CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, s);
+        context.framePointerOffset--;
     }
 
 
@@ -1364,7 +1368,7 @@ class leq extends Expression {
 
         CgenSupport.emitLabelDef(labelIdx, s);
 
-        CgenSupport.emitArithExit(s);
+        CgenSupport.emitArithExit(s, context);
     }
 
 

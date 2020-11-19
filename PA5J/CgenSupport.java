@@ -560,14 +560,16 @@ class CgenSupport {
      * @param reg the register
      * @param s   the output stream
      */
-    static void emitPush(String reg, PrintStream s) {
+    static void emitPush(String reg, PrintStream s, CgenContext context) {
         emitStore(reg, 0, SP, s);
         emitAddiu(SP, SP, -1 * WORD_SIZE, s);
+        context.framePointerOffset++;
     }
 
-    static void emitPop(String reg, PrintStream s) {
+    static void emitPop(String reg, PrintStream s, CgenContext context) {
         emitLoad(reg, 1, SP, s);
         emitAddiu(SP, SP, WORD_SIZE, s);
+        context.framePointerOffset--;
     }
 
     /**
@@ -594,7 +596,7 @@ class CgenSupport {
 
     static void emitArithEnter(Expression e1, Expression e2, PrintStream s, CgenContext context) {
         e1.code(s, context);
-        emitPush(ACC, s);
+        emitPush(ACC, s, context);
 
         e2.code(s, context);
         emitObjectCopy(s);
@@ -605,9 +607,10 @@ class CgenSupport {
         emitFetchInt(T2, ACC, s);
     }
 
-    static void emitArithExit(PrintStream s) {
+    static void emitArithExit(PrintStream s, CgenContext context) {
         emitStoreInt(T1, ACC, s);
         emitAddiu(SP, SP, WORD_SIZE, s);
+        context.framePointerOffset--;
     }
 
     /**
@@ -616,7 +619,7 @@ class CgenSupport {
      * @param s the output stream
      */
     static void emitTestCollector(PrintStream s) {
-        emitPush(ACC, s);
+        emitPush(ACC, s, null);
         emitMove(ACC, SP, s);
         emitMove(A1, ZERO, s);
         s.println(JAL + gcCollectNames[Flags.cgen_Memmgr]);
