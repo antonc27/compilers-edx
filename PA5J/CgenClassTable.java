@@ -644,6 +644,21 @@ class CgenContext {
         int offsetToFp;
 
         ArgLocation(int offsetToFp) {
+            assert offsetToFp > 0;
+            this.offsetToFp = offsetToFp;
+        }
+
+        @Override
+        public void cgen(PrintStream s) {
+            CgenSupport.emitLoad(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
+        }
+    }
+
+    public static class StackLocation implements Location {
+        int offsetToFp;
+
+        StackLocation(int offsetToFp) {
+            assert offsetToFp < 0;
             this.offsetToFp = offsetToFp;
         }
 
