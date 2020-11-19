@@ -289,17 +289,7 @@ class CgenClassTable extends SymbolTable {
                         CgenSupport.emitMethodRef(cn.name, m.name, str);
                         str.println(":");
 
-                        //CgenSupport.emitMove(CgenSupport.FP, CgenSupport.SP, str);
-                        CgenSupport.emitPush(CgenSupport.FP, str);
-                        CgenSupport.emitPush(CgenSupport.RA, str);
-                        CgenSupport.emitPush(CgenSupport.SELF, str);
-
-                        //CgenSupport.emitLoad(CgenSupport.FP, 3, CgenSupport.SP, str);
-                        CgenSupport.emitAddiu(CgenSupport.FP, CgenSupport.SP, 3 * CgenSupport.WORD_SIZE, str);
-
-                        // save self passed to $a0
-                        CgenSupport.emitMove(CgenSupport.SELF, CgenSupport.ACC, str);
-
+                        cgenContext.framePointerOffset = 0;
                         cgenContext.so = cn;
                         cgenContext.symTab = new SymbolTable();
                         cgenContext.symTab.enterScope();
@@ -308,16 +298,25 @@ class CgenClassTable extends SymbolTable {
                             formal fc = (formal) m.formals.getNth(i);
                             cgenContext.symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
                         }
+
+                        CgenSupport.emitPush(CgenSupport.FP, str, cgenContext);
+                        CgenSupport.emitPush(CgenSupport.RA, str, cgenContext);
+                        CgenSupport.emitPush(CgenSupport.SELF, str, cgenContext);
+
+                        CgenSupport.emitAddiu(CgenSupport.FP, CgenSupport.SP, 3 * CgenSupport.WORD_SIZE, str);
+
+                        // save self passed to $a0
+                        CgenSupport.emitMove(CgenSupport.SELF, CgenSupport.ACC, str);
+
                         m.expr.code(str, cgenContext);
 
-                        CgenSupport.emitPop(CgenSupport.SELF, str);
-                        CgenSupport.emitPop(CgenSupport.RA, str);
-                        CgenSupport.emitPop(CgenSupport.FP, str);
+                        CgenSupport.emitPop(CgenSupport.SELF, str, cgenContext);
+                        CgenSupport.emitPop(CgenSupport.RA, str, cgenContext);
+                        CgenSupport.emitPop(CgenSupport.FP, str, cgenContext);
+                        assert cgenContext.framePointerOffset == 0;
                         if (n > 0) {
                             CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, n * CgenSupport.WORD_SIZE, str);
                         }
-                        //CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, (1 + n) * CgenSupport.WORD_SIZE, str);
-                        //CgenSupport.emitLoad(CgenSupport.FP, 0, CgenSupport.SP, str);
 
                         CgenSupport.emitReturn(str);
                     }
@@ -619,6 +618,7 @@ class CgenContext {
     CgenNode so;
     Map<AbstractSymbol, Map<AbstractSymbol, MethodInfo>> classMethodInfos = new HashMap<AbstractSymbol, Map<AbstractSymbol, MethodInfo>>();
     int labelIndex = 0;
+    int framePointerOffset = 0;
 
     int nextLabelIndex() {
         return labelIndex++;
