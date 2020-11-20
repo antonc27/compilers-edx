@@ -638,6 +638,7 @@ class CgenContext {
 
     interface Location {
         void cgen(PrintStream s);
+        int getOffsetToFp();
     }
 
     public static class ArgLocation implements Location {
@@ -652,6 +653,11 @@ class CgenContext {
         public void cgen(PrintStream s) {
             CgenSupport.emitLoad(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
         }
+
+        @Override
+        public int getOffsetToFp() {
+            return offsetToFp;
+        }
     }
 
     public static class StackLocation implements Location {
@@ -665,6 +671,11 @@ class CgenContext {
         @Override
         public void cgen(PrintStream s) {
             CgenSupport.emitLoad(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
+        }
+
+        @Override
+        public int getOffsetToFp() {
+            return offsetToFp;
         }
     }
 }
