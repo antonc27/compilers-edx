@@ -564,6 +564,10 @@ class assign extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        expr.code(s, context);
+
+        int fpOffset = ((CgenContext.Location) context.symTab.lookup(name)).getOffsetToFp();
+        CgenSupport.emitStore(CgenSupport.ACC, fpOffset, CgenSupport.FP, s);
     }
 
 
