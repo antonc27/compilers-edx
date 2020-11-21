@@ -451,8 +451,8 @@ class attr extends Feature {
             init.code(s, context);
         }
 
-        CgenContext.AttributeLocation al = ((CgenContext.AttributeLocation) context.symTab.lookup(name));
-        CgenSupport.emitStore(CgenSupport.ACC, al.offset, CgenSupport.SELF, s);
+        CgenContext.Location location = ((CgenContext.Location) context.symTab.lookup(name));
+        location.cgenStore(s);
     }
 }
 
@@ -578,8 +578,7 @@ class assign extends Expression {
     public void code(PrintStream s, CgenContext context) {
         expr.code(s, context);
 
-        int fpOffset = ((CgenContext.Location) context.symTab.lookup(name)).getOffsetToFp();
-        CgenSupport.emitStore(CgenSupport.ACC, fpOffset, CgenSupport.FP, s);
+        ((CgenContext.Location) context.symTab.lookup(name)).cgenStore(s);
     }
 
 
@@ -1758,7 +1757,7 @@ class object extends Expression {
         if (name == TreeConstants.self) {
             CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
         } else {
-            ((CgenContext.Location) context.symTab.lookup(name)).cgen(s);
+            ((CgenContext.Location) context.symTab.lookup(name)).cgenLoad(s);
         }
     }
 
