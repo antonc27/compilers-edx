@@ -207,6 +207,9 @@ class CgenClassTable extends SymbolTable {
 
             HashMap<AbstractSymbol, CgenContext.MethodInfo> infos = new HashMap<AbstractSymbol, CgenContext.MethodInfo>();
             int offset = 0;
+            SymbolTable attrSymTable = new SymbolTable();
+            attrSymTable.enterScope();
+            int attrOffset = CgenSupport.DEFAULT_OBJFIELDS;
             for (CgenNode currentCn : inheritancePath) {
                 for (Enumeration ee = currentCn.features.getElements(); ee.hasMoreElements();) {
                     Feature f = (Feature)ee.nextElement();
@@ -221,9 +224,16 @@ class CgenClassTable extends SymbolTable {
                         infos.put(m.name, new CgenContext.MethodInfo(offset, m.formalcs));
                         offset++;
                     }
+                    if (f instanceof attr) {
+                        attr a = (attr) f;
+
+                        attrSymTable.addId(a.name, new CgenContext.AttributeLocation(attrOffset));
+                        attrOffset++;
+                    }
                 }
             }
             cgenContext.classMethodInfos.put(cn.name, infos);
+            cgenContext.classAttrSymTables.put(cn.name, attrSymTable);
         }
     }
 
@@ -250,15 +260,26 @@ class CgenClassTable extends SymbolTable {
             CgenSupport.emitDispTableRef(cn.name, str);
             str.println("");
 
-            if (cn.name == TreeConstants.Str) {
-                IntSymbol emptyLength = (IntSymbol) AbstractTable.inttable.lookup("0");
-                str.print(CgenSupport.WORD);
-                emptyLength.codeRef(str);
-                str.println("");
+            IntSymbol zeroInt = (IntSymbol) AbstractTable.inttable.lookup("0");
+            StringSymbol emptyString = (StringSymbol) AbstractTable.stringtable.lookup("");
+            BoolConst defaultBool = BoolConst.falsebool;
+            for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements();) {
+                Feature f = (Feature) ee.nextElement();
+                if (f instanceof attr) {
+                    attr a = (attr) f;
 
-                str.println(CgenSupport.WORD + 0);
-            } else if (cn.name == TreeConstants.Int || cn.name == TreeConstants.Bool) {
-                str.println(CgenSupport.WORD + 0);
+                    str.print(CgenSupport.WORD);
+                    if (a.type_decl == TreeConstants.Int) {
+                        zeroInt.codeRef(str);
+                    } else if (a.type_decl == TreeConstants.Bool) {
+                        defaultBool.codeRef(str);
+                    } else if (a.type_decl == TreeConstants.Str) {
+                        emptyString.codeRef(str);
+                    } else {
+                        str.print(0);
+                    }
+                    str.println("");
+                }
             }
         }
     }
@@ -291,7 +312,7 @@ class CgenClassTable extends SymbolTable {
 
                         cgenContext.framePointerOffset = 0;
                         cgenContext.so = cn;
-                        cgenContext.symTab = new SymbolTable();
+                        cgenContext.symTab = cgenContext.classAttrSymTables.get(cn.name);
                         cgenContext.symTab.enterScope();
                         int n = m.formalcs.getLength();
                         for (int i = 0; i < n; i++) {
@@ -319,6 +340,8 @@ class CgenClassTable extends SymbolTable {
                         }
 
                         CgenSupport.emitReturn(str);
+
+                        cgenContext.symTab.exitScope();
                     }
                 }
             }
@@ -617,6 +640,7 @@ class CgenClassTable extends SymbolTable {
 class CgenContext {
     CgenNode so;
     Map<AbstractSymbol, Map<AbstractSymbol, MethodInfo>> classMethodInfos = new HashMap<AbstractSymbol, Map<AbstractSymbol, MethodInfo>>();
+    Map<AbstractSymbol, SymbolTable> classAttrSymTables = new HashMap<AbstractSymbol, SymbolTable>();
     int labelIndex = 0;
     int framePointerOffset = 0;
 
@@ -676,6 +700,24 @@ class CgenContext {
         @Override
         public int getOffsetToFp() {
             return offsetToFp;
+        }
+    }
+
+    public static class AttributeLocation implements Location {
+        int offset;
+
+        AttributeLocation(int offset) {
+            this.offset = offset;
+        }
+
+        @Override
+        public void cgen(PrintStream s) {
+            CgenSupport.emitLoad(CgenSupport.ACC, offset, CgenSupport.SELF, s);
+        }
+
+        @Override
+        public int getOffsetToFp() {
+            throw new UnsupportedOperationException();
         }
     }
 }
