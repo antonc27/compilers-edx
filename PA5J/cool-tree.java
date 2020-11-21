@@ -960,7 +960,13 @@ class let extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
-        init.code(s, context);
+        if (init instanceof no_expr) {
+            CgenSupport.emitPartialLoadAddress(CgenSupport.ACC, s);
+            CgenSupport.emitDefaultRef(type_decl, s);
+            s.println("");
+        } else {
+            init.code(s, context);
+        }
 
         int offset = context.framePointerOffset;
         CgenSupport.emitPush(CgenSupport.ACC, s, context);

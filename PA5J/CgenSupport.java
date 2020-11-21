@@ -226,6 +226,21 @@ class CgenSupport {
         s.println("");
     }
 
+    static void emitDefaultRef(AbstractSymbol symbol, PrintStream s) {
+        if (symbol == TreeConstants.Int) {
+            IntSymbol zeroInt = (IntSymbol) AbstractTable.inttable.lookup("0");
+            zeroInt.codeRef(s);
+        } else if (symbol == TreeConstants.Bool) {
+            BoolConst defaultBool = BoolConst.falsebool;
+            defaultBool.codeRef(s);
+        } else if (symbol == TreeConstants.Str) {
+            StringSymbol emptyString = (StringSymbol) AbstractTable.stringtable.lookup("");
+            emptyString.codeRef(s);
+        } else {
+            s.print(0);
+        }
+    }
+
     /**
      * Emits a MOVE instruction.
      *

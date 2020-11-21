@@ -260,24 +260,13 @@ class CgenClassTable extends SymbolTable {
             CgenSupport.emitDispTableRef(cn.name, str);
             str.println("");
 
-            IntSymbol zeroInt = (IntSymbol) AbstractTable.inttable.lookup("0");
-            StringSymbol emptyString = (StringSymbol) AbstractTable.stringtable.lookup("");
-            BoolConst defaultBool = BoolConst.falsebool;
             for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements();) {
                 Feature f = (Feature) ee.nextElement();
                 if (f instanceof attr) {
                     attr a = (attr) f;
 
                     str.print(CgenSupport.WORD);
-                    if (a.type_decl == TreeConstants.Int) {
-                        zeroInt.codeRef(str);
-                    } else if (a.type_decl == TreeConstants.Bool) {
-                        defaultBool.codeRef(str);
-                    } else if (a.type_decl == TreeConstants.Str) {
-                        emptyString.codeRef(str);
-                    } else {
-                        str.print(0);
-                    }
+                    CgenSupport.emitDefaultRef(a.type_decl, str);
                     str.println("");
                 }
             }
