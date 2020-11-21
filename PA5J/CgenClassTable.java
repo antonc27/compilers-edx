@@ -325,7 +325,7 @@ class CgenClassTable extends SymbolTable {
 
                         m.expr.code(str, cgenContext);
 
-                        CgenSupport.emitFunctionExit(m.formalcs.getLength(), str, cgenContext);
+                        CgenSupport.emitFunctionExit(m.formals.getLength(), str, cgenContext);
                         assert cgenContext.framePointerOffset == 0;
                         cgenContext.reset();
                     }
@@ -637,7 +637,7 @@ class CgenContext {
         symTab.enterScope();
         int n = formals.getLength();
         for (int i = 0; i < n; i++) {
-            formalc fc = (formalc) formals.getNth(i);
+            formal fc = (formal) formals.getNth(i);
             symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
         }
     }
