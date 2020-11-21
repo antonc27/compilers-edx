@@ -628,6 +628,27 @@ class CgenSupport {
         context.framePointerOffset--;
     }
 
+    static void emitFunctionEnter(PrintStream s, CgenContext context) {
+        emitPush(FP, s, context);
+        emitPush(RA, s, context);
+        emitPush(SELF, s, context);
+
+        emitAddiu(FP, SP, 3 * WORD_SIZE, s);
+
+        // save self passed to $a0
+        emitMove(SELF, ACC, s);
+    }
+
+    static void emitFunctionExit(int n, PrintStream s, CgenContext context) {
+        emitPop(SELF, s, context);
+        emitPop(RA, s, context);
+        emitPop(FP, s, context);
+        if (n > 0) {
+            emitAddiu(SP, SP, n * WORD_SIZE, s);
+        }
+        emitReturn(s);
+    }
+
     /**
      * Emits code to manipulate garbage collector
      *

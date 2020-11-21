@@ -442,6 +442,18 @@ class attr extends Feature {
 	init.dump_with_types(out, n + 2);
     }
 
+    public void code(PrintStream s, CgenContext context) {
+        if (init instanceof no_expr) {
+            CgenSupport.emitPartialLoadAddress(CgenSupport.ACC, s);
+            CgenSupport.emitDefaultRef(type_decl, s);
+            s.println("");
+        } else {
+            init.code(s, context);
+        }
+
+        CgenContext.AttributeLocation al = ((CgenContext.AttributeLocation) context.symTab.lookup(name));
+        CgenSupport.emitStore(CgenSupport.ACC, al.offset, CgenSupport.SELF, s);
+    }
 }
 
 
