@@ -281,7 +281,29 @@ class CgenClassTable extends SymbolTable {
             CgenSupport.emitInitRef(cn.name, str);
             str.println(":");
 
-            CgenSupport.emitReturn(str);
+            cgenContext.prepareFor(cn, new Formals(-1));
+            CgenSupport.emitFunctionEnter(str, cgenContext);
+
+            if (cn.name != TreeConstants.Object_) {
+                str.print(CgenSupport.JAL);
+                CgenSupport.emitInitRef(cn.getParent(), str);
+                str.println("");
+            }
+
+            for (Enumeration ee = cn.features.getElements(); ee.hasMoreElements();) {
+                Feature f = (Feature) ee.nextElement();
+                if (f instanceof attr) {
+                    attr a = (attr) f;
+
+                    a.code(str, cgenContext);
+                }
+            }
+
+            CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF,  str);
+
+            CgenSupport.emitFunctionExit(0, str, cgenContext);
+            assert cgenContext.framePointerOffset == 0;
+            cgenContext.reset();
         }
     }
 
@@ -298,38 +320,14 @@ class CgenClassTable extends SymbolTable {
                         CgenSupport.emitMethodRef(cn.name, m.name, str);
                         str.println(":");
 
-                        cgenContext.framePointerOffset = 0;
-                        cgenContext.so = cn;
-                        cgenContext.symTab = cgenContext.classAttrSymTables.get(cn.name);
-                        cgenContext.symTab.enterScope();
-                        int n = m.formalcs.getLength();
-                        for (int i = 0; i < n; i++) {
-                            formalc fc = (formalc) m.formalcs.getNth(i);
-                            cgenContext.symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
-                        }
-
-                        CgenSupport.emitPush(CgenSupport.FP, str, cgenContext);
-                        CgenSupport.emitPush(CgenSupport.RA, str, cgenContext);
-                        CgenSupport.emitPush(CgenSupport.SELF, str, cgenContext);
-
-                        CgenSupport.emitAddiu(CgenSupport.FP, CgenSupport.SP, 3 * CgenSupport.WORD_SIZE, str);
-
-                        // save self passed to $a0
-                        CgenSupport.emitMove(CgenSupport.SELF, CgenSupport.ACC, str);
+                        cgenContext.prepareFor(cn, m.formalcs);
+                        CgenSupport.emitFunctionEnter(str, cgenContext);
 
                         m.expr.code(str, cgenContext);
 
-                        CgenSupport.emitPop(CgenSupport.SELF, str, cgenContext);
-                        CgenSupport.emitPop(CgenSupport.RA, str, cgenContext);
-                        CgenSupport.emitPop(CgenSupport.FP, str, cgenContext);
+                        CgenSupport.emitFunctionExit(m.formalcs.getLength(), str, cgenContext);
                         assert cgenContext.framePointerOffset == 0;
-                        if (n > 0) {
-                            CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, n * CgenSupport.WORD_SIZE, str);
-                        }
-
-                        CgenSupport.emitReturn(str);
-
-                        cgenContext.symTab.exitScope();
+                        cgenContext.reset();
                     }
                 }
             }
@@ -631,6 +629,22 @@ class CgenContext {
     Map<AbstractSymbol, SymbolTable> classAttrSymTables = new HashMap<AbstractSymbol, SymbolTable>();
     int labelIndex = 0;
     int framePointerOffset = 0;
+
+    void prepareFor(CgenNode cn, Formals formals) {
+        framePointerOffset = 0;
+        so = cn;
+        symTab = classAttrSymTables.get(cn.name);
+        symTab.enterScope();
+        int n = formals.getLength();
+        for (int i = 0; i < n; i++) {
+            formalc fc = (formalc) formals.getNth(i);
+            symTab.addId(fc.name, new CgenContext.ArgLocation(n - i));
+        }
+    }
+
+    void reset() {
+        symTab.exitScope();
+    }
 
     int nextLabelIndex() {
         return labelIndex++;
