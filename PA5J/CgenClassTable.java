@@ -281,7 +281,6 @@ class CgenClassTable extends SymbolTable {
             CgenSupport.emitInitRef(cn.name, str);
             str.println(":");
 
-            CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, CgenSupport.WORD_SIZE, str);
             CgenSupport.emitReturn(str);
         }
     }
