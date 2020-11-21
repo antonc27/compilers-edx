@@ -663,8 +663,8 @@ class CgenContext {
     SymbolTable symTab;
 
     interface Location {
-        void cgen(PrintStream s);
-        int getOffsetToFp();
+        void cgenLoad(PrintStream s);
+        void cgenStore(PrintStream s);
     }
 
     public static class ArgLocation implements Location {
@@ -676,13 +676,13 @@ class CgenContext {
         }
 
         @Override
-        public void cgen(PrintStream s) {
+        public void cgenLoad(PrintStream s) {
             CgenSupport.emitLoad(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
         }
 
         @Override
-        public int getOffsetToFp() {
-            return offsetToFp;
+        public void cgenStore(PrintStream s) {
+            CgenSupport.emitStore(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
         }
     }
 
@@ -695,13 +695,13 @@ class CgenContext {
         }
 
         @Override
-        public void cgen(PrintStream s) {
+        public void cgenLoad(PrintStream s) {
             CgenSupport.emitLoad(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
         }
 
         @Override
-        public int getOffsetToFp() {
-            return offsetToFp;
+        public void cgenStore(PrintStream s) {
+            CgenSupport.emitStore(CgenSupport.ACC, offsetToFp, CgenSupport.FP, s);
         }
     }
 
@@ -713,13 +713,13 @@ class CgenContext {
         }
 
         @Override
-        public void cgen(PrintStream s) {
+        public void cgenLoad(PrintStream s) {
             CgenSupport.emitLoad(CgenSupport.ACC, offset, CgenSupport.SELF, s);
         }
 
         @Override
-        public int getOffsetToFp() {
-            throw new UnsupportedOperationException();
+        public void cgenStore(PrintStream s) {
+            CgenSupport.emitStore(CgenSupport.ACC, offset, CgenSupport.SELF, s);
         }
     }
 }
