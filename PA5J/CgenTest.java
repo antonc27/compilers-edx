@@ -12,7 +12,8 @@ class CgenTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "example.cl", "hello_world.cl", "two_args.cl", "basic_sum.cl", "basic_arith.cl",
-            "eval-order-arith.cl", "fact.cl", "simple_let.cl", "exp.cl", "bigexpr.cl", "basic-init.cl"
+            "eval-order-arith.cl", "fact.cl", "simple_let.cl", "exp.cl", "bigexpr.cl", "basic-init.cl",
+            "basicequality.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
