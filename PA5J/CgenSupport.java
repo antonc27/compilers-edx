@@ -628,6 +628,23 @@ class CgenSupport {
         context.framePointerOffset--;
     }
 
+    static void emitCompEnter(Expression e1, Expression e2, PrintStream s, CgenContext context) {
+        e1.code(s, context);
+        emitPush(ACC, s, context);
+
+        e2.code(s, context);
+
+        emitLoad(S1, 1, SP, s);
+        emitFetchInt(T1, S1, s);
+
+        emitFetchInt(T2, ACC, s);
+    }
+
+    static void emitCompExit(PrintStream s, CgenContext context) {
+        emitAddiu(SP, SP, WORD_SIZE, s);
+        context.framePointerOffset--;
+    }
+
     static void emitFunctionEnter(PrintStream s, CgenContext context) {
         emitPush(FP, s, context);
         emitPush(RA, s, context);

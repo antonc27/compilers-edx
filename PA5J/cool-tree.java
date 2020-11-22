@@ -842,6 +842,22 @@ class loop extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        int labelStart = context.nextLabelIndex();
+        CgenSupport.emitLabelDef(labelStart, s);
+
+        pred.code(s, context);
+
+        // fetch int value of a bool
+        CgenSupport.emitFetchInt(CgenSupport.T1, CgenSupport.ACC, s);
+
+        int labelEnd = context.nextLabelIndex();
+        CgenSupport.emitBeq(CgenSupport.T1, CgenSupport.ZERO, labelEnd, s);
+
+        body.code(s, context);
+        CgenSupport.emitBranch(labelStart, s);
+
+        CgenSupport.emitLabelDef(labelEnd, s);
+        CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.ZERO, s);
     }
 
 
@@ -1285,7 +1301,7 @@ class lt extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
-        CgenSupport.emitArithEnter(e1, e2, s, context);
+        CgenSupport.emitCompEnter(e1, e2, s, context);
 
         CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
 
@@ -1296,7 +1312,7 @@ class lt extends Expression {
 
         CgenSupport.emitLabelDef(labelIdx, s);
 
-        CgenSupport.emitArithExit(s, context);
+        CgenSupport.emitCompExit(s, context);
     }
 
 
@@ -1411,7 +1427,7 @@ class leq extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
-        CgenSupport.emitArithEnter(e1, e2, s, context);
+        CgenSupport.emitCompEnter(e1, e2, s, context);
 
         CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
 
@@ -1422,7 +1438,7 @@ class leq extends Expression {
 
         CgenSupport.emitLabelDef(labelIdx, s);
 
-        CgenSupport.emitArithExit(s, context);
+        CgenSupport.emitCompExit(s, context);
     }
 
 
