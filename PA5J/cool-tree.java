@@ -1483,6 +1483,13 @@ class comp extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        e1.code(s, context);
+
+        CgenSupport.emitFetchInt(CgenSupport.T1, CgenSupport.ACC, s);
+        CgenSupport.emitLoadImm(CgenSupport.T2, 1, s);
+        CgenSupport.emitSub(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
+        CgenSupport.emitNeg(CgenSupport.T1, CgenSupport.T1, s);
+        CgenSupport.emitStoreInt(CgenSupport.T1, CgenSupport.ACC, s);
     }
 
 
