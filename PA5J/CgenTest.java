@@ -13,7 +13,8 @@ class CgenTest {
     @ValueSource(strings = {
             "example.cl", "hello_world.cl", "two_args.cl", "basic_sum.cl", "basic_arith.cl",
             "eval-order-arith.cl", "fact.cl", "simple_let.cl", "exp.cl", "bigexpr.cl", "basic-init.cl",
-            "basicequality.cl", "simple_new.cl", "calls.cl", "sequence.cl"
+            "basicequality.cl", "simple_new.cl", "calls.cl", "sequence.cl", "if_and_compare.cl",
+            "simple_while.cl"
     })
     public void testExample(String programFilename) {
         String programPath = "tests/" + programFilename;
