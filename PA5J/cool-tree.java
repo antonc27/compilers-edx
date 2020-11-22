@@ -639,6 +639,29 @@ class static_dispatch extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        context.symTab.enterScope();
+
+        int n = actual.getLength();
+        for (int i = 0; i < n; i++) {
+            Expression e = (Expression) actual.getNth(i);
+            e.code(s, context);
+            CgenSupport.emitPush(CgenSupport.ACC, s, context);
+        }
+
+        expr.code(s, context);
+
+        AbstractSymbol className = context.correctClassName(type_name);
+
+        CgenSupport.emitPartialLoadAddress(CgenSupport.T1, s);
+        CgenSupport.emitDispTableRef(className, s);
+        s.println("");
+
+        CgenContext.MethodInfo methodInfo = context.classMethodInfos.get(className).get(name);
+        CgenSupport.emitLoad(CgenSupport.T1, methodInfo.offset, CgenSupport.T1, s);
+        CgenSupport.emitJalr(CgenSupport.T1, s);
+
+        // callee will pop args
+        context.framePointerOffset -= n;
     }
 
 
