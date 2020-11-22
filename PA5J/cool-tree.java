@@ -1255,9 +1255,12 @@ class neg extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        e1.code(s, context);
+
+        CgenSupport.emitFetchInt(CgenSupport.T1, CgenSupport.ACC, s);
+        CgenSupport.emitNeg(CgenSupport.T1, CgenSupport.T1, s);
+        CgenSupport.emitStoreInt(CgenSupport.T1, CgenSupport.ACC, s);
     }
-
-
 }
 
 
