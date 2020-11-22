@@ -1262,6 +1262,7 @@ class neg extends Expression {
       * */
     public void code(PrintStream s, CgenContext context) {
         e1.code(s, context);
+        CgenSupport.emitObjectCopy(s);
 
         CgenSupport.emitFetchInt(CgenSupport.T1, CgenSupport.ACC, s);
         CgenSupport.emitNeg(CgenSupport.T1, CgenSupport.T1, s);
@@ -1490,6 +1491,7 @@ class comp extends Expression {
       * */
     public void code(PrintStream s, CgenContext context) {
         e1.code(s, context);
+        CgenSupport.emitObjectCopy(s);
 
         CgenSupport.emitFetchInt(CgenSupport.T1, CgenSupport.ACC, s);
         CgenSupport.emitLoadImm(CgenSupport.T2, 1, s);
