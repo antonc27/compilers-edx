@@ -216,13 +216,13 @@ class CgenClassTable extends SymbolTable {
                     if (f instanceof method) {
                         method m = (method) f;
 
-                        str.print(CgenSupport.WORD);
-                        CgenSupport.emitMethodRef(currentCn.name, m.name, str);
-                        str.println("");
-
-
-                        infos.put(m.name, new CgenContext.MethodInfo(offset, m.formals));
-                        offset++;
+                        if (infos.containsKey(m.name)) {
+                            int oldOffset = infos.get(m.name).offset;
+                            infos.put(m.name, new CgenContext.MethodInfo(currentCn.name, oldOffset, m.formals));
+                        } else {
+                            infos.put(m.name, new CgenContext.MethodInfo(currentCn.name, offset, m.formals));
+                            offset++;
+                        }
                     }
                     if (f instanceof attr) {
                         attr a = (attr) f;
@@ -232,6 +232,27 @@ class CgenClassTable extends SymbolTable {
                     }
                 }
             }
+
+            HashSet<AbstractSymbol> seenMethod = new HashSet<AbstractSymbol>();
+            for (CgenNode currentCn : inheritancePath) {
+                for (Enumeration ee = currentCn.features.getElements(); ee.hasMoreElements(); ) {
+                    Feature f = (Feature) ee.nextElement();
+                    if (f instanceof method) {
+                        method m = (method) f;
+
+                        if (!seenMethod.contains(m.name)) {
+                            AbstractSymbol className = infos.get(m.name).className;
+
+                            str.print(CgenSupport.WORD);
+                            CgenSupport.emitMethodRef(className, m.name, str);
+                            str.println("");
+
+                            seenMethod.add(m.name);
+                        }
+                    }
+                }
+            }
+
             cgenContext.classMethodInfos.put(cn.name, infos);
             cgenContext.classAttrSymTables.put(cn.name, attrSymTable);
         }
@@ -658,10 +679,12 @@ class CgenContext {
     }
 
     static class MethodInfo {
+        AbstractSymbol className;
         int offset;
         Formals formals;
 
-        MethodInfo(int offset, Formals formals) {
+        MethodInfo(AbstractSymbol className, int offset, Formals formals) {
+            this.className = className;
             this.offset = offset;
             this.formals = formals;
         }
