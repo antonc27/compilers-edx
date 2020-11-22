@@ -705,10 +705,7 @@ class dispatch extends Expression {
 
         expr.code(s, context);
 
-        AbstractSymbol className = expr.get_type();
-        if (className == TreeConstants.SELF_TYPE) {
-            className = context.so.name;
-        }
+        AbstractSymbol className = context.correctClassName(expr.get_type());
 
         CgenSupport.emitLoad(CgenSupport.T1,CgenSupport.DISPTABLE_OFFSET, CgenSupport.ACC, s);
         CgenContext.MethodInfo methodInfo = context.classMethodInfos.get(className).get(name);
@@ -1641,14 +1638,16 @@ class new_ extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s, CgenContext context) {
+        AbstractSymbol className = context.correctClassName(type_name);
+
         CgenSupport.emitPartialLoadAddress(CgenSupport.ACC, s);
-        CgenSupport.emitProtObjRef(type_name, s);
+        CgenSupport.emitProtObjRef(className, s);
         s.println("");
 
         CgenSupport.emitObjectCopy(s);
 
         s.print(CgenSupport.JAL);
-        CgenSupport.emitInitRef(type_name, s);
+        CgenSupport.emitInitRef(className, s);
         s.println("");
     }
 }

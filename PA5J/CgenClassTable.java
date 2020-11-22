@@ -646,6 +646,13 @@ class CgenContext {
         symTab.exitScope();
     }
 
+    AbstractSymbol correctClassName(AbstractSymbol className) {
+        if (className == TreeConstants.SELF_TYPE) {
+            className = so.name;
+        }
+        return className;
+    }
+
     int nextLabelIndex() {
         return labelIndex++;
     }
